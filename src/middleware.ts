@@ -30,10 +30,9 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    const { payload } = await jwtVerify(token, secret);
-    if (pathname.startsWith("/admin") && payload.role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/account", request.url));
-    }
+    await jwtVerify(token, secret);
+    // Role checks happen in requireAdminPage / getSession (DB-backed) so
+    // promotions apply without waiting for cookie re-issue.
     return NextResponse.next();
   } catch {
     const login = new URL("/login", request.url);

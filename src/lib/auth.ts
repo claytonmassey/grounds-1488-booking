@@ -49,7 +49,22 @@ export async function getSession(): Promise<SessionUser | null> {
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
   if (!token) return null;
-  return readSessionToken(token);
+  const session = await readSessionToken(token);
+  if (!session) return null;
+
+  // Prefer live role/name from the DB so promotions apply without re-login.
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { id: true, email: true, name: true, role: true },
+  });
+  if (!user) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role === "ADMIN" ? "ADMIN" : "CUSTOMER",
+  };
 }
 
 export async function requireSession() {
