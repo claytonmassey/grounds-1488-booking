@@ -3,7 +3,10 @@ import { BookingStatus } from "@prisma/client";
 import {
   assertBookingAvailable,
   bookingRequestSchema,
+  getSeasonalSetBySlug,
   getSpaceBySlug,
+  seasonalSetToBookable,
+  spaceToBookable,
 } from "@/lib/booking";
 import { getSession } from "@/lib/auth";
 import { spacePath } from "@/lib/constants";
@@ -13,11 +16,20 @@ import { getStripe } from "@/lib/stripe";
 export async function POST(request: NextRequest) {
   try {
     const body = bookingRequestSchema.parse(await request.json());
-    const space = await getSpaceBySlug(body.spaceSlug);
     const session = await getSession();
 
+    const unit = body.seasonalSetSlug
+      ? await (async () => {
+          const set = await getSeasonalSetBySlug(body.seasonalSetSlug!);
+          if (!set || !set.published) {
+            throw new Error("That seasonal set is not available.");
+          }
+          return seasonalSetToBookable(set);
+        })()
+      : spaceToBookable(await getSpaceBySlug(body.spaceSlug!));
+
     await assertBookingAvailable({
-      space,
+      unit,
       bookingDate: body.bookingDate,
       startHour: body.startHour,
       endHour: body.endHour,
@@ -26,7 +38,7 @@ export async function POST(request: NextRequest) {
     });
 
     const hours = body.endHour - body.startHour;
-    const totalAmountCents = hours * space.hourlyRate;
+    const totalAmountCents = hours * unit.hourlyRate;
     const origin = request.nextUrl.origin;
 
     let userId: string | null = null;
@@ -42,7 +54,8 @@ export async function POST(request: NextRequest) {
 
     const booking = await prisma.booking.create({
       data: {
-        spaceId: space.id,
+        spaceId: unit.spaceId,
+        seasonalSetId: unit.seasonalSetId ?? null,
         userId,
         customerName: body.customerName,
         customerEmail: body.customerEmail.toLowerCase(),
@@ -58,6 +71,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const cancelPath = unit.seasonalSetId
+      ? `/book/seasonal/${body.seasonalSetSlug}`
+      : `/book/${spacePath(unit.spaceSlug)}`;
+
     const stripe = getStripe();
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -69,7 +86,7 @@ export async function POST(request: NextRequest) {
             currency: "usd",
             unit_amount: totalAmountCents,
             product_data: {
-              name: `${space.name} — ${hours} hour${hours === 1 ? "" : "s"}`,
+              name: `${unit.name} — ${hours} hour${hours === 1 ? "" : "s"}`,
               description: `${body.purpose.toLowerCase()} booking on ${body.bookingDate} (${body.startHour}:00–${body.endHour}:00), party of ${body.partySize}`,
             },
           },
@@ -77,10 +94,11 @@ export async function POST(request: NextRequest) {
       ],
       metadata: {
         bookingId: booking.id,
-        spaceSlug: space.slug,
+        spaceSlug: unit.spaceSlug,
+        seasonalSetSlug: body.seasonalSetSlug ?? "",
       },
       success_url: `${origin}/book/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/book/${spacePath(space.slug)}?canceled=1`,
+      cancel_url: `${origin}${cancelPath}?canceled=1`,
     });
 
     await prisma.booking.update({

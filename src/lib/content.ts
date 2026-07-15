@@ -44,9 +44,9 @@ const DEFAULT_SETTINGS: SiteSettingsView = {
   siteName: "Grounds Collective",
   homeEyebrow: "Photography & event bookings",
   homeLede:
-    "Two friendly spaces to shoot or gather — pick the one that fits your day, then book by the hour.",
+    "Three ways to shoot — The Grounds, Glass House, and rotating Seasonal Sets. Pick what fits, then book by the hour.",
   footerText:
-    "Grounds Collective · Hourly bookings for The Grounds & The Glass House",
+    "Grounds Collective · Hourly bookings for The Grounds, Glass House & Seasonal Sets",
 };
 
 const DEFAULT_SPACE_MARKETING: Record<
@@ -137,6 +137,30 @@ const DEFAULT_SPACE_MARKETING: Record<
         url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80",
         alt: "Modern glass building exterior",
         caption: "Exterior",
+      },
+    ],
+  },
+  SEASONAL_SETS: {
+    kicker: "Limited run",
+    tagline: SPACE_COPY.SEASONAL_SETS.tagline,
+    cardBlurb:
+      "Styled seasonal rooms with their own dates, rates, and guest limits — click a set to book.",
+    bullets: [
+      "Photography-focused sets",
+      "Rates set per room",
+      "Available only during each set’s dates",
+      "Book by the hour",
+    ],
+    purposes: [BookingPurpose.PHOTOGRAPHY],
+    pageIntro:
+      "Our Seasonal Sets rotate through the year — each room is dressed for a limited window.",
+    pageBody:
+      "Browse the current sets, check availability dates, and book the room that matches your shoot.",
+    gallery: [
+      {
+        url: "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=1600&q=80",
+        alt: "Festive styled interior with warm lights",
+        caption: "Seasonal styling",
       },
     ],
   },
@@ -240,14 +264,18 @@ export async function getSpaceContent(
 
 export async function listSpaceContent(): Promise<SpaceContentView[]> {
   noStore();
+  const order: SpaceSlugType[] = ["GROUNDS", "GLASS_HOUSE", "SEASONAL_SETS"];
   try {
-    const spaces = await prisma.space.findMany({ orderBy: { name: "asc" } });
+    const spaces = await prisma.space.findMany();
     if (spaces.length === 0) {
-      return (Object.keys(SPACES) as SpaceSlugType[]).map(fallbackSpace);
+      return order.map(fallbackSpace);
     }
-    return spaces.map(mapSpace);
+    const mapped = spaces.map(mapSpace);
+    return order
+      .map((slug) => mapped.find((space) => space.slug === slug))
+      .filter((space): space is SpaceContentView => Boolean(space));
   } catch {
-    return (Object.keys(SPACES) as SpaceSlugType[]).map(fallbackSpace);
+    return order.map(fallbackSpace);
   }
 }
 

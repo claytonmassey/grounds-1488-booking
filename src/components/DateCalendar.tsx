@@ -10,6 +10,8 @@ import {
   isBefore,
   isSameDay,
   isSameMonth,
+  max as maxDateFn,
+  min as minDateFn,
   startOfDay,
   startOfMonth,
   startOfWeek,
@@ -21,21 +23,41 @@ type Props = {
   selected: string;
   onSelect: (date: string) => void;
   maxDaysAhead?: number;
+  /** YYYY-MM-DD inclusive lower bound (optional). */
+  minDate?: string;
+  /** YYYY-MM-DD inclusive upper bound (optional). */
+  maxDate?: string;
 };
+
+function parseBound(value: string | undefined) {
+  if (!value) return null;
+  return startOfDay(new Date(`${value}T12:00:00`));
+}
 
 export function DateCalendar({
   selected,
   onSelect,
   maxDaysAhead = 60,
+  minDate: minDateProp,
+  maxDate: maxDateProp,
 }: Props) {
   const today = startOfDay(new Date());
-  const maxDate = addDays(today, maxDaysAhead - 1);
+  const windowMax = addDays(today, maxDaysAhead - 1);
+  const boundMin = parseBound(minDateProp);
+  const boundMax = parseBound(maxDateProp);
+  const minSelectable = boundMin ? maxDateFn([today, boundMin]) : today;
+  const maxSelectable = boundMax
+    ? minDateFn([windowMax, boundMax])
+    : windowMax;
+
   const selectedDate = selected
     ? startOfDay(new Date(`${selected}T12:00:00`))
     : null;
 
   const [visibleMonth, setVisibleMonth] = useState(
-    selectedDate && isSameMonth(selectedDate, today) ? today : (selectedDate ?? today),
+    selectedDate && isSameMonth(selectedDate, today)
+      ? today
+      : (selectedDate ?? minSelectable),
   );
 
   const monthStart = startOfMonth(visibleMonth);
@@ -44,8 +66,12 @@ export function DateCalendar({
     end: endOfWeek(endOfMonth(visibleMonth)),
   });
 
-  const canGoPrev = !isSameMonth(today, visibleMonth);
-  const canGoNext = !isBefore(maxDate, startOfMonth(addMonths(visibleMonth, 1)));
+  const canGoPrev = !isBefore(startOfMonth(visibleMonth), startOfMonth(minSelectable)) &&
+    !isSameMonth(minSelectable, visibleMonth);
+  const canGoNext = !isBefore(
+    maxSelectable,
+    startOfMonth(addMonths(visibleMonth, 1)),
+  );
 
   return (
     <div className="date-calendar">
@@ -82,7 +108,9 @@ export function DateCalendar({
           const value = format(day, "yyyy-MM-dd");
           const inMonth = isSameMonth(day, visibleMonth);
           const disabled =
-            !inMonth || isBefore(day, today) || isBefore(maxDate, day);
+            !inMonth ||
+            isBefore(day, minSelectable) ||
+            isBefore(maxSelectable, day);
           const isSelected = selectedDate
             ? isSameDay(day, selectedDate)
             : false;

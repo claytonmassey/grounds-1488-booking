@@ -1,32 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SpaceSlug } from "@prisma/client";
 import { z } from "zod";
-import { getHourlyAvailability, getSpaceBySlug } from "@/lib/booking";
+import {
+  getHourlyAvailability,
+  getSeasonalSetBySlug,
+  getSpaceBySlug,
+  seasonalSetToBookable,
+  spaceToBookable,
+} from "@/lib/booking";
 
-const querySchema = z.object({
-  space: z.nativeEnum(SpaceSlug),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-});
+const querySchema = z
+  .object({
+    space: z.nativeEnum(SpaceSlug).optional(),
+    set: z.string().trim().min(1).optional(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  })
+  .refine(
+    (data) => {
+      const hasSet = Boolean(data.set);
+      const hasSpace =
+        Boolean(data.space) && data.space !== SpaceSlug.SEASONAL_SETS;
+      return (hasSet || hasSpace) && !(hasSet && hasSpace);
+    },
+    { message: "Provide either space or set." },
+  );
 
 export async function GET(request: NextRequest) {
   try {
     const params = querySchema.parse({
-      space: request.nextUrl.searchParams.get("space"),
+      space: request.nextUrl.searchParams.get("space") ?? undefined,
+      set: request.nextUrl.searchParams.get("set") ?? undefined,
       date: request.nextUrl.searchParams.get("date"),
     });
 
-    const space = await getSpaceBySlug(params.space);
-    const slots = await getHourlyAvailability(space, params.date);
+    const unit = params.set
+      ? await (async () => {
+          const set = await getSeasonalSetBySlug(params.set!);
+          if (!set || !set.published) {
+            throw new Error("That seasonal set is not available.");
+          }
+          return seasonalSetToBookable(set);
+        })()
+      : spaceToBookable(await getSpaceBySlug(params.space!));
+
+    const slots = await getHourlyAvailability(unit, params.date);
 
     return NextResponse.json({
       space: {
-        slug: space.slug,
-        name: space.name,
-        hourlyRate: space.hourlyRate,
-        maxCapacity: space.maxCapacity,
-        openHour: space.openHour,
-        closeHour: space.closeHour,
+        slug: unit.spaceSlug,
+        name: unit.name,
+        hourlyRate: unit.hourlyRate,
+        maxCapacity: unit.maxCapacity,
+        openHour: unit.openHour,
+        closeHour: unit.closeHour,
+        availableFrom: unit.availableFrom ?? null,
+        availableTo: unit.availableTo ?? null,
       },
+      seasonalSetSlug: params.set ?? null,
       date: params.date,
       slots,
     });

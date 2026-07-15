@@ -44,6 +44,7 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
     where: status ? { status } : undefined,
     include: {
       space: { select: { name: true, slug: true } },
+      seasonalSet: { select: { name: true, slug: true } },
       user: { select: { id: true, name: true, email: true } },
     },
     orderBy: [{ bookingDate: "desc" }, { createdAt: "desc" }],
@@ -66,7 +67,7 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
         <p className="section-kicker">Admin</p>
         <h1 className="page-title">Bookings</h1>
         <p className="page-lede">
-          All reservations across The Grounds and Glass House.
+          All reservations across The Grounds, Glass House, and Seasonal Sets.
         </p>
         <AdminNav current="bookings" />
 
@@ -120,7 +121,12 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
                         {formatHourLabel(booking.endHour)}
                       </span>
                     </td>
-                    <td>{booking.space.name}</td>
+                    <td>
+                      {booking.seasonalSet?.name ?? booking.space.name}
+                      {booking.seasonalSet ? (
+                        <span className="admin-table-sub">Seasonal set</span>
+                      ) : null}
+                    </td>
                     <td>
                       <strong>{booking.customerName}</strong>
                       <span className="admin-table-sub">

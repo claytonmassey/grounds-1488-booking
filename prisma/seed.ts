@@ -166,17 +166,168 @@ async function main() {
     },
   });
 
+  const seasonalGallery = [
+    {
+      url: "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=1600&q=80",
+      alt: "Festive styled interior with warm lights",
+      caption: "Seasonal styling",
+    },
+  ];
+
+  await prisma.space.upsert({
+    where: { slug: SpaceSlug.SEASONAL_SETS },
+    update: {
+      name: "Seasonal Sets",
+      description:
+        "Limited-run styled rooms. Each set has its own dates, rate, and capacity.",
+      kicker: "Limited run",
+      tagline: "Styled seasonal rooms — book the set that fits your shoot",
+      cardBlurb:
+        "Styled seasonal rooms with their own dates, rates, and guest limits — click a set to book.",
+      bullets: [
+        "Photography-focused sets",
+        "Rates set per room",
+        "Available only during each set’s dates",
+        "Book by the hour",
+      ],
+      purposes: [BookingPurpose.PHOTOGRAPHY],
+      pageIntro:
+        "Our Seasonal Sets rotate through the year — each room is dressed for a limited window.",
+      pageBody:
+        "Browse the current sets, check availability dates, and book the room that matches your shoot.",
+      gallery: seasonalGallery,
+      hourlyRate: 20000,
+      maxCapacity: 4,
+      openHour: 8,
+      closeHour: 20,
+    },
+    create: {
+      slug: SpaceSlug.SEASONAL_SETS,
+      name: "Seasonal Sets",
+      description:
+        "Limited-run styled rooms. Each set has its own dates, rate, and capacity.",
+      kicker: "Limited run",
+      tagline: "Styled seasonal rooms — book the set that fits your shoot",
+      cardBlurb:
+        "Styled seasonal rooms with their own dates, rates, and guest limits — click a set to book.",
+      bullets: [
+        "Photography-focused sets",
+        "Rates set per room",
+        "Available only during each set’s dates",
+        "Book by the hour",
+      ],
+      purposes: [BookingPurpose.PHOTOGRAPHY],
+      pageIntro:
+        "Our Seasonal Sets rotate through the year — each room is dressed for a limited window.",
+      pageBody:
+        "Browse the current sets, check availability dates, and book the room that matches your shoot.",
+      gallery: seasonalGallery,
+      hourlyRate: 20000,
+      maxCapacity: 4,
+      openHour: 8,
+      closeHour: 20,
+    },
+  });
+
+  const sampleSets = [
+    {
+      slug: "cinnamon-sugar-in-the-ivy",
+      name: "Cinnamon Sugar in the Ivy",
+      imageUrl:
+        "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=1200&q=80",
+      hourlyRate: 20000,
+      availableFrom: "2026-09-19",
+      availableTo: "2026-12-25",
+      maxCapacity: 4,
+      sortOrder: 1,
+    },
+    {
+      slug: "coco-and-cashmere-in-the-dahlia",
+      name: "Coco and Cashmere in the Dahlia",
+      imageUrl:
+        "https://images.unsplash.com/photo-1482514194978-2ed7efd166ee?w=1200&q=80",
+      hourlyRate: 20000,
+      availableFrom: "2026-09-19",
+      availableTo: "2026-12-25",
+      maxCapacity: 4,
+      sortOrder: 2,
+    },
+    {
+      slug: "sugar-plum-in-the-delphinium",
+      name: "Sugar Plum in the Delphinium",
+      imageUrl:
+        "https://images.unsplash.com/photo-1545622783-b3e01473cdbf?w=1200&q=80",
+      hourlyRate: 20000,
+      availableFrom: "2026-09-19",
+      availableTo: "2026-12-25",
+      maxCapacity: 4,
+      sortOrder: 3,
+    },
+    {
+      slug: "emerald-grove-in-the-rosewood",
+      name: "Emerald Grove in the Rosewood",
+      imageUrl:
+        "https://images.unsplash.com/photo-1576919228236-a097c6a17ec9?w=1200&q=80",
+      hourlyRate: 25000,
+      availableFrom: "2026-10-24",
+      availableTo: "2026-11-01",
+      maxCapacity: 4,
+      sortOrder: 4,
+    },
+  ];
+
+  for (const set of sampleSets) {
+    await prisma.seasonalSet.upsert({
+      where: { slug: set.slug },
+      update: {
+        name: set.name,
+        imageUrl: set.imageUrl,
+        imageAlt: set.name,
+        hourlyRate: set.hourlyRate,
+        maxCapacity: set.maxCapacity,
+        availableFrom: set.availableFrom,
+        availableTo: set.availableTo,
+        purposes: [BookingPurpose.PHOTOGRAPHY],
+        published: true,
+        sortOrder: set.sortOrder,
+        openHour: 8,
+        closeHour: 20,
+      },
+      create: {
+        slug: set.slug,
+        name: set.name,
+        description: "",
+        imageUrl: set.imageUrl,
+        imageAlt: set.name,
+        hourlyRate: set.hourlyRate,
+        maxCapacity: set.maxCapacity,
+        availableFrom: set.availableFrom,
+        availableTo: set.availableTo,
+        purposes: [BookingPurpose.PHOTOGRAPHY],
+        published: true,
+        sortOrder: set.sortOrder,
+        openHour: 8,
+        closeHour: 20,
+      },
+    });
+  }
+
   await prisma.siteSettings.upsert({
     where: { id: "default" },
-    update: {},
+    update: {
+      homeLede:
+        "Three ways to shoot — The Grounds, Glass House, and rotating Seasonal Sets. Pick what fits, then book by the hour.",
+      footerText:
+        "Grounds Collective · Hourly bookings for The Grounds, Glass House & Seasonal Sets",
+    },
     create: {
       id: "default",
       siteName: "Grounds Collective",
       homeEyebrow: "Photography & event bookings",
       homeLede:
-        "Two friendly spaces to shoot or gather — pick the one that fits your day, then book by the hour.",
+        "Three ways to shoot — The Grounds, Glass House, and rotating Seasonal Sets. Pick what fits, then book by the hour.",
       footerText:
-        "Grounds Collective · Hourly bookings for The Grounds & The Glass House",
+        "Grounds Collective · Hourly bookings for The Grounds, Glass House & Seasonal Sets",
     },
   });
 

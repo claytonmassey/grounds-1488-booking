@@ -8,9 +8,8 @@ import {
   BookingPurpose,
   formatHourLabel,
   formatMoney,
-  SpaceSlug,
+  type SpaceSlug,
 } from "@/lib/constants";
-import type { SpaceContentView } from "@/lib/content";
 
 type HourSlot = {
   hour: number;
@@ -19,26 +18,54 @@ type HourSlot = {
   available: boolean;
 };
 
+export type BookingResourceView = {
+  name: string;
+  purposes: BookingPurpose[];
+  hourlyRate: number;
+  maxCapacity: number;
+  openHour: number;
+  closeHour: number;
+  availableFrom?: string;
+  availableTo?: string;
+};
+
 type Props = {
-  slug: SpaceSlug;
-  space: SpaceContentView;
+  /** Present for Grounds / Glass House bookings. */
+  spaceSlug?: SpaceSlug;
+  /** Present for seasonal set bookings. */
+  seasonalSetSlug?: string;
+  resource: BookingResourceView;
   canceled?: boolean;
   initialCustomer?: { name: string; email: string };
+  capacityHint?: string;
 };
 
 function todayValue() {
   return format(new Date(), "yyyy-MM-dd");
 }
 
+function clampInitialDate(resource: BookingResourceView) {
+  const today = todayValue();
+  const from = resource.availableFrom ?? today;
+  const to = resource.availableTo;
+  if (today < from) return from;
+  if (to && today > to) return from;
+  return today;
+}
+
 export function BookingFlow({
-  slug,
-  space,
+  spaceSlug,
+  seasonalSetSlug,
+  resource,
   canceled = false,
   initialCustomer,
+  capacityHint,
 }: Props) {
-  const purposes = space.purposes;
+  const purposes = resource.purposes;
   const [purpose, setPurpose] = useState<BookingPurpose>(purposes[0]);
-  const [bookingDate, setBookingDate] = useState(todayValue);
+  const [bookingDate, setBookingDate] = useState(() =>
+    clampInitialDate(resource),
+  );
   const [slots, setSlots] = useState<HourSlot[] | null>(null);
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
   const [partySize, setPartySize] = useState(1);
@@ -47,17 +74,23 @@ export function BookingFlow({
     initialCustomer?.email ?? "",
   );
   const [customerPhone, setCustomerPhone] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedSeasonalTerms, setAcceptedSeasonalTerms] = useState(false);
+  const [smsConsent, setSmsConsent] = useState(false);
+  const [termsTouched, setTermsTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const isSeasonal = Boolean(seasonalSetSlug);
 
   useEffect(() => {
     if (!bookingDate) return;
 
     let cancelled = false;
+    const query = seasonalSetSlug
+      ? `set=${encodeURIComponent(seasonalSetSlug)}`
+      : `space=${spaceSlug}`;
 
-    fetch(
-      `/api/availability?space=${slug}&date=${encodeURIComponent(bookingDate)}`,
-    )
+    fetch(`/api/availability?${query}&date=${encodeURIComponent(bookingDate)}`)
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error ?? "Failed to load slots");
@@ -77,7 +110,7 @@ export function BookingFlow({
     return () => {
       cancelled = true;
     };
-  }, [bookingDate, slug]);
+  }, [bookingDate, spaceSlug, seasonalSetSlug]);
 
   const selectedRange = useMemo(() => {
     if (selectedHours.length === 0) return null;
@@ -86,7 +119,7 @@ export function BookingFlow({
   }, [selectedHours]);
 
   const hoursCount = selectedHours.length;
-  const totalCents = hoursCount * space.hourlyRate;
+  const totalCents = hoursCount * resource.hourlyRate;
   const loadingSlots = slots === null;
   const selectedDateLabel = bookingDate
     ? format(new Date(`${bookingDate}T12:00:00`), "EEEE, MMM d")
@@ -150,6 +183,16 @@ export function BookingFlow({
       return;
     }
 
+    setTermsTouched(true);
+    if (!acceptedTerms) {
+      setError("Please agree to the terms to continue.");
+      return;
+    }
+    if (isSeasonal && !acceptedSeasonalTerms) {
+      setError("Please accept the Seasonal Sets policy to continue.");
+      return;
+    }
+
     setError(null);
     startTransition(async () => {
       try {
@@ -157,7 +200,9 @@ export function BookingFlow({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            spaceSlug: slug,
+            ...(seasonalSetSlug
+              ? { seasonalSetSlug }
+              : { spaceSlug }),
             purpose,
             bookingDate,
             startHour: selectedRange.startHour,
@@ -166,6 +211,9 @@ export function BookingFlow({
             customerName,
             customerEmail,
             customerPhone,
+            acceptedTerms: true,
+            acceptedSeasonalTerms: isSeasonal ? true : undefined,
+            smsConsent,
           }),
         });
 
@@ -184,6 +232,12 @@ export function BookingFlow({
       }
     });
   }
+
+  const hint =
+    capacityHint ??
+    (resource.maxCapacity > 1
+      ? `Overlapping bookings are OK until the shared party total hits ${resource.maxCapacity}.`
+      : "Exclusive booking — one reservation at a time.");
 
   return (
     <form className="booking-flow" onSubmit={onSubmit}>
@@ -228,15 +282,17 @@ export function BookingFlow({
           ) : (
             <div className="field-block">
               <p className="field-label">Purpose</p>
-              <p className="hint">Photography booking</p>
+              <p className="hint">
+                {purposes[0] === "EVENT" ? "Event" : "Photography"} booking
+              </p>
             </div>
           )}
 
           <div className="field-block">
-            <p className="field-label">Party size (max {space.maxCapacity})</p>
+            <p className="field-label">Party size (max {resource.maxCapacity})</p>
             <div className="choice-row choice-row--segmented">
               {Array.from(
-                { length: space.maxCapacity },
+                { length: resource.maxCapacity },
                 (_, index) => index + 1,
               ).map((size) => (
                 <button
@@ -286,21 +342,24 @@ export function BookingFlow({
         <div className="book-section-body book-schedule">
           <div className="book-schedule-calendar">
             <p className="field-label">Date</p>
-            <DateCalendar selected={bookingDate} onSelect={onDateSelect} />
+            <DateCalendar
+              selected={bookingDate}
+              onSelect={onDateSelect}
+              minDate={resource.availableFrom}
+              maxDate={resource.availableTo}
+            />
           </div>
 
           <div className="book-schedule-hours">
             <p className="field-label">
-              Hours ({space.openHour}:00–{space.closeHour}:00)
+              Hours ({resource.openHour}:00–{resource.closeHour}:00)
             </p>
-            <p className="hint">
-              {space.maxCapacity > 1
-                ? `Grounds can overlap until the shared party total hits ${space.maxCapacity}.`
-                : "Glass House is exclusive — one booking at a time."}
-            </p>
+            <p className="hint">{hint}</p>
 
             {loadingSlots ? (
-              <SlotGridSkeleton count={space.closeHour - space.openHour} />
+              <SlotGridSkeleton
+                count={resource.closeHour - resource.openHour}
+              />
             ) : (
               <div className="slot-grid slot-grid--compact">
                 {(slots ?? []).map((slot) => {
@@ -331,7 +390,7 @@ export function BookingFlow({
                       <span className="slot-time">{slot.label}</span>
                       <span className="slot-meta">
                         {canBook
-                          ? space.maxCapacity > 1
+                          ? resource.maxCapacity > 1
                             ? `${slot.remainingCapacity} open`
                             : "Open"
                           : "Full"}
@@ -386,6 +445,117 @@ export function BookingFlow({
         </div>
       </section>
 
+      {isSeasonal ? (
+        <section className="book-section">
+          <div className="book-section-head">
+            <span className="book-step">4</span>
+            <div>
+              <h3>Set form</h3>
+              <p>Please note these Seasonal Set policies before you pay.</p>
+            </div>
+          </div>
+          <div className="book-section-body terms-block">
+            <p>
+              You are welcome to book these sets as a client, but please note we
+              are just the rental of the space itself — no photographer is
+              included.
+            </p>
+            <p>
+              Pets are allowed; there is a $25 pet fee and a link to pay will be
+              in the confirmation email.
+            </p>
+            <label className="terms-check">
+              <input
+                type="checkbox"
+                checked={acceptedSeasonalTerms}
+                onChange={(event) =>
+                  setAcceptedSeasonalTerms(event.target.checked)
+                }
+              />
+              <span>
+                <strong>Seasonal Sets:</strong> I understand that cancellations
+                for studio credit are not offered for seasonal sets. Reschedules
+                for the same set within the same timeframe are available and the
+                reschedule fee is $50.
+                <span className="terms-required"> *</span>
+              </span>
+            </label>
+            {termsTouched && !acceptedSeasonalTerms ? (
+              <p className="terms-error">
+                Seasonal Sets policy acceptance is required.
+              </p>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="book-section">
+        <div className="book-section-head">
+          <span className="book-step">{isSeasonal ? "5" : "4"}</span>
+          <div>
+            <h3>Terms &amp; conditions</h3>
+            <p>Confirm our policies before continuing to payment.</p>
+          </div>
+        </div>
+        <div className="book-section-body terms-block">
+          <p>
+            Please make sure to read through our{" "}
+            <a href="/policies" target="_blank" rel="noreferrer">
+              policies / terms and conditions
+            </a>
+            .
+          </p>
+          <label className="terms-check">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(event) => setAcceptedTerms(event.target.checked)}
+            />
+            <span>
+              I have read and agree to the{" "}
+              <a href="/policies#terms" target="_blank" rel="noreferrer">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="/policies#privacy" target="_blank" rel="noreferrer">
+                Privacy Policy
+              </a>
+              .<span className="terms-required"> *</span>
+            </span>
+          </label>
+          {termsTouched && !acceptedTerms ? (
+            <p className="terms-error">
+              I have read and agree to the terms above is required.
+            </p>
+          ) : null}
+          <label className="terms-check">
+            <input
+              type="checkbox"
+              checked={smsConsent}
+              onChange={(event) => setSmsConsent(event.target.checked)}
+            />
+            <span>
+              By checking, you accept our{" "}
+              <a href="/policies#terms" target="_blank" rel="noreferrer">
+                Terms of Service
+              </a>
+              , acknowledge that you have read and understood our{" "}
+              <a href="/policies#privacy" target="_blank" rel="noreferrer">
+                Privacy Policy
+              </a>
+              , and consent to receive SMS communications about your appointments
+              and/or waitlist availability from Grounds Collective. Message
+              frequency may vary. Message and data rates may apply. Reply HELP
+              for help or STOP to opt out.{" "}
+              <a href="/policies#sms" target="_blank" rel="noreferrer">
+                Learn more
+              </a>
+              .
+            </span>
+          </label>
+        </div>
+      </section>
+
       <div className="summary">
         <div>
           <p className="summary-label">Your booking</p>
@@ -396,7 +566,7 @@ export function BookingFlow({
           </p>
         </div>
         <div className="summary-total">
-          <span>{formatMoney(space.hourlyRate)}/hr</span>
+          <span>{formatMoney(resource.hourlyRate)}/hr</span>
           <strong>{formatMoney(totalCents)}</strong>
         </div>
       </div>
@@ -406,7 +576,12 @@ export function BookingFlow({
       <button
         type="submit"
         className="submit-btn"
-        disabled={pending || hoursCount === 0}
+        disabled={
+          pending ||
+          hoursCount === 0 ||
+          !acceptedTerms ||
+          (isSeasonal && !acceptedSeasonalTerms)
+        }
       >
         {pending ? "Redirecting to Stripe…" : "Continue to payment"}
       </button>

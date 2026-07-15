@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { BookingForm } from "@/components/BookingForm";
 import { getSession } from "@/lib/auth";
@@ -31,6 +31,7 @@ export default async function BookSpacePage({ params }: PageProps) {
   const slug = slugFromPath(spaceParam);
 
   if (!slug) notFound();
+  if (slug === "SEASONAL_SETS") redirect("/seasonal-sets");
 
   const [space, session] = await Promise.all([
     getSpaceContent(slug),
@@ -45,8 +46,14 @@ export default async function BookSpacePage({ params }: PageProps) {
         <p className="page-lede">{space.description}</p>
 
         <BookingForm
+          mode="space"
           slug={slug}
           space={space}
+          capacityHint={
+            slug === "GROUNDS"
+              ? `Grounds can overlap until the shared party total hits ${space.maxCapacity}.`
+              : "Glass House is exclusive — one booking at a time."
+          }
           initialCustomer={
             session
               ? { name: session.name, email: session.email }

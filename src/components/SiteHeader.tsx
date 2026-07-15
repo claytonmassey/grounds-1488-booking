@@ -52,6 +52,17 @@ export function SiteHeader() {
         >
           Glass House
         </Link>
+        <Link
+          href="/seasonal-sets"
+          className={
+            pathname.startsWith("/seasonal-sets") ||
+            pathname.startsWith("/book/seasonal")
+              ? "is-active"
+              : undefined
+          }
+        >
+          Seasonal Sets
+        </Link>
         {user ? (
           <>
             {user.role === "ADMIN" ? (

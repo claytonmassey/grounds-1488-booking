@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { InstantBookLink } from "@/components/InstantBookLink";
 import { getSpaceContent, listSpaceContent } from "@/lib/content";
 import {
@@ -34,6 +34,7 @@ export default async function SpacePage({ params }: PageProps) {
   const { space: spaceParam } = await params;
   const slug = slugFromPath(spaceParam);
   if (!slug) notFound();
+  if (slug === "SEASONAL_SETS") redirect("/seasonal-sets");
 
   const [space, allSpaces] = await Promise.all([
     getSpaceContent(slug),
@@ -44,26 +45,20 @@ export default async function SpacePage({ params }: PageProps) {
   const rest = gallery.slice(1);
   const bookHref = `/book/${spacePath(slug)}`;
   const shortName = space.name.replace(/^The\s+/i, "");
-  const sibling = allSpaces.find((item) => item.slug !== slug) ?? null;
+  const sibling =
+    allSpaces.find(
+      (item) => item.slug !== slug && item.slug !== "SEASONAL_SETS",
+    ) ?? null;
   const purposeLabel = space.purposes
     .map((purpose) =>
       purpose === "PHOTOGRAPHY" ? "Photography" : "Events",
     )
     .join(" · ");
+  const theme = slug === "GROUNDS" ? "grounds" : "glass";
 
   return (
-    <article
-      className={[
-        "space-page",
-        slug === "GROUNDS" ? "space-page--grounds" : "space-page--glass",
-      ].join(" ")}
-    >
-      <div
-        className={[
-          "space-hero",
-          slug === "GROUNDS" ? "space-hero--grounds" : "space-hero--glass",
-        ].join(" ")}
-      >
+    <article className={`space-page space-page--${theme}`}>
+      <div className={`space-hero space-hero--${theme}`}>
         {hero ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -99,6 +94,9 @@ export default async function SpacePage({ params }: PageProps) {
                     View {sibling.name.replace(/^The\s+/i, "")}
                   </Link>
                 ) : null}
+                <Link href="/seasonal-sets" className="space-alt-link">
+                  View Seasonal Sets
+                </Link>
               </div>
             </div>
 
@@ -147,7 +145,9 @@ export default async function SpacePage({ params }: PageProps) {
               <div className="space-gallery-head">
                 <p className="space-section-label">Look around</p>
                 <h2>Gallery</h2>
-                <p>Light, lines, and room to work — a few angles from the space.</p>
+                <p>
+                  Light, lines, and room to work — a few angles from the space.
+                </p>
               </div>
 
               <div className="space-gallery-layout">

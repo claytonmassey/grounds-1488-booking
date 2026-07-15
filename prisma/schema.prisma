@@ -11,6 +11,7 @@ datasource db {
 enum SpaceSlug {
   GROUNDS
   GLASS_HOUSE
+  SEASONAL_SETS
 }
 
 enum BookingPurpose {
@@ -73,10 +74,40 @@ model Space {
   updatedAt    DateTime   @updatedAt
 }
 
+/// Individual themed rooms/sets under Seasonal Sets (admin-managed).
+model SeasonalSet {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  name          String
+  description   String    @default("")
+  imageUrl      String
+  imageAlt      String    @default("")
+  /// Hourly rate in cents
+  hourlyRate    Int
+  maxCapacity   Int       @default(1)
+  openHour      Int       @default(8)
+  closeHour     Int       @default(20)
+  /// Inclusive availability window (YYYY-MM-DD)
+  availableFrom String
+  availableTo   String
+  /// Allowed purposes (JSON BookingPurpose[])
+  purposes      Json      @default("[\"PHOTOGRAPHY\"]")
+  published     Boolean   @default(true)
+  sortOrder     Int       @default(0)
+  bookings      Booking[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([published, sortOrder])
+  @@index([availableFrom, availableTo])
+}
+
 model Booking {
   id                    String         @id @default(cuid())
   spaceId               String
   space                 Space          @relation(fields: [spaceId], references: [id])
+  seasonalSetId         String?
+  seasonalSet           SeasonalSet?   @relation(fields: [seasonalSetId], references: [id])
   userId                String?
   user                  User?          @relation(fields: [userId], references: [id])
   customerName          String
@@ -98,6 +129,7 @@ model Booking {
   updatedAt             DateTime       @updatedAt
 
   @@index([spaceId, bookingDate, status])
+  @@index([seasonalSetId, bookingDate, status])
   @@index([status, createdAt])
   @@index([userId])
   @@index([customerEmail])

@@ -38,7 +38,10 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col antialiased">
         <SiteHeader />
         <main className="flex-1">{children}</main>
-        <footer className="site-footer">{settings.footerText}</footer>
+        <footer className="site-footer">
+          <span>{settings.footerText}</span>
+          <a href="/policies">Policies</a>
+        </footer>
       </body>
     </html>
   );

@@ -39,7 +39,7 @@ export default async function AccountPage() {
         { customerEmail: { equals: session.email, mode: "insensitive" } },
       ],
     },
-    include: { space: true },
+    include: { space: true, seasonalSet: true },
     orderBy: [{ bookingDate: "desc" }, { createdAt: "desc" }],
   });
 
@@ -73,15 +73,15 @@ export default async function AccountPage() {
           <div className="account-empty">
             <h2>You don&apos;t have any bookings yet</h2>
             <p>
-              When you reserve The Grounds or Glass House, your purchases will
-              show up here.
+              When you reserve The Grounds, Glass House, or a Seasonal Set, your
+              purchases will show up here.
             </p>
             <div className="account-empty-actions">
               <Link href="/spaces/grounds" className="btn-book">
                 Browse The Grounds
               </Link>
-              <Link href="/spaces/glass-house" className="text-btn">
-                View Glass House
+              <Link href="/seasonal-sets" className="text-btn">
+                View Seasonal Sets
               </Link>
             </div>
           </div>
@@ -142,14 +142,20 @@ function BookingCard({
     hours: number;
     partySize: number;
     totalAmountCents: number;
-    space: { name: string; slug: "GROUNDS" | "GLASS_HOUSE" };
+    space: { name: string; slug: "GROUNDS" | "GLASS_HOUSE" | "SEASONAL_SETS" };
+    seasonalSet: { name: string; slug: string } | null;
   };
 }) {
+  const title = booking.seasonalSet?.name ?? booking.space.name;
+  const bookAgainHref = booking.seasonalSet
+    ? `/book/seasonal/${booking.seasonalSet.slug}`
+    : `/book/${spacePath(booking.space.slug)}`;
+
   return (
     <li className="booking-card">
       <div>
         <p className="booking-card-kicker">{statusLabel(booking.status)}</p>
-        <h3>{booking.space.name}</h3>
+        <h3>{title}</h3>
         <p>
           {booking.bookingDate} · {formatHourLabel(booking.startHour)}–
           {formatHourLabel(booking.endHour)} · {booking.hours} hour
@@ -162,10 +168,7 @@ function BookingCard({
       <div className="booking-card-aside">
         <strong>{formatMoney(booking.totalAmountCents)}</strong>
         {booking.status === BookingStatus.PENDING ? (
-          <Link
-            href={`/book/${spacePath(booking.space.slug)}`}
-            className="text-btn"
-          >
+          <Link href={bookAgainHref} className="text-btn">
             Continue booking
           </Link>
         ) : null}

@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const booking = await prisma.booking.findUnique({
       where: { stripeSessionId: sessionId },
-      include: { space: true },
+      include: { space: true, seasonalSet: true },
     });
 
     if (!booking) {
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       id: booking.id,
       status: booking.status,
-      spaceName: booking.space.name,
+      spaceName: booking.seasonalSet?.name ?? booking.space.name,
       purpose: booking.purpose,
       bookingDate: booking.bookingDate,
       startHour: booking.startHour,
