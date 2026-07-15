@@ -1,6 +1,8 @@
 "use client";
 
+import { format } from "date-fns";
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { DateCalendar } from "@/components/DateCalendar";
 import {
   BookingPurpose,
   formatHourLabel,
@@ -26,18 +28,19 @@ type HourSlot = {
   available: boolean;
 };
 
-type DayOption = { value: string; label: string };
-
 type Props = {
   space: SpaceInfo;
-  dayOptions: DayOption[];
   canceled?: boolean;
 };
 
-export function BookingFlow({ space, dayOptions, canceled = false }: Props) {
+function todayValue() {
+  return format(new Date(), "yyyy-MM-dd");
+}
+
+export function BookingFlow({ space, canceled = false }: Props) {
   const purposes = SPACE_COPY[space.slug].purposes;
   const [purpose, setPurpose] = useState<BookingPurpose>(purposes[0]);
-  const [bookingDate, setBookingDate] = useState(dayOptions[0]?.value ?? "");
+  const [bookingDate, setBookingDate] = useState(todayValue);
   const [slots, setSlots] = useState<HourSlot[] | null>(null);
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
   const [partySize, setPartySize] = useState(1);
@@ -85,6 +88,15 @@ export function BookingFlow({ space, dayOptions, canceled = false }: Props) {
   const hoursCount = selectedHours.length;
   const totalCents = hoursCount * space.hourlyRate;
   const loadingSlots = slots === null;
+  const selectedDateLabel = bookingDate
+    ? format(new Date(`${bookingDate}T12:00:00`), "EEEE, MMM d")
+    : "";
+
+  function onDateSelect(value: string) {
+    setBookingDate(value);
+    setSlots(null);
+    setSelectedHours([]);
+  }
 
   function toggleHour(hour: number, available: boolean, remaining: number) {
     if (!available || remaining < partySize) return;
@@ -182,165 +194,209 @@ export function BookingFlow({ space, dayOptions, canceled = false }: Props) {
         </p>
       ) : null}
 
-      <fieldset className="field-block">
-        <legend>Purpose</legend>
-        <div className="choice-row">
-          {purposes.map((item) => (
-            <button
-              key={item}
-              type="button"
-              className={purpose === item ? "choice active" : "choice"}
-              onClick={() => setPurpose(item)}
-            >
-              {item === "PHOTOGRAPHY" ? "Photography" : "Event"}
-            </button>
-          ))}
+      <section className="book-section">
+        <div className="book-section-head">
+          <span className="book-step">1</span>
+          <div>
+            <h3>Session details</h3>
+            <p>What are you booking, and for how many people?</p>
+          </div>
         </div>
-      </fieldset>
 
-      <div className="field-grid">
-        <label className="field">
-          <span>Date</span>
-          <select
-            value={bookingDate}
-            onChange={(event) => {
-              setBookingDate(event.target.value);
-              setSlots(null);
-              setSelectedHours([]);
-            }}
-            required
-          >
-            {dayOptions.map((day) => (
-              <option key={day.value} value={day.value}>
-                {day.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="book-section-body book-section-body--split">
+          {purposes.length > 1 ? (
+            <div className="field-block">
+              <p className="field-label">Purpose</p>
+              <div className="choice-row choice-row--segmented">
+                {purposes.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={[
+                      "choice",
+                      purpose === item ? "active" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onClick={() => setPurpose(item)}
+                  >
+                    {item === "PHOTOGRAPHY" ? "Photography" : "Event"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="field-block">
+              <p className="field-label">Purpose</p>
+              <p className="hint">Photography booking</p>
+            </div>
+          )}
 
-        <label className="field">
-          <span>Party size (max {space.maxCapacity})</span>
-          <select
-            value={partySize}
-            onChange={(event) => {
-              const next = Number(event.target.value);
-              setPartySize(next);
-              setSelectedHours((current) =>
-                current.filter((hour) => {
-                  const slot = (slots ?? []).find((item) => item.hour === hour);
-                  return !!slot && slot.remainingCapacity >= next;
-                }),
-              );
-            }}
-          >
-            {Array.from(
-              { length: space.maxCapacity },
-              (_, index) => index + 1,
-            ).map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+          <div className="field-block">
+            <p className="field-label">Party size (max {space.maxCapacity})</p>
+            <div className="choice-row choice-row--segmented">
+              {Array.from(
+                { length: space.maxCapacity },
+                (_, index) => index + 1,
+              ).map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  className={[
+                    "choice",
+                    "choice--compact",
+                    partySize === size ? "active" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  onClick={() => {
+                    setPartySize(size);
+                    setSelectedHours((current) =>
+                      current.filter((hour) => {
+                        const slot = (slots ?? []).find(
+                          (item) => item.hour === hour,
+                        );
+                        return !!slot && slot.remainingCapacity >= size;
+                      }),
+                    );
+                  }}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <div className="field-block">
-        <div className="slot-header">
-          <legend>Hours</legend>
+      <section className="book-section">
+        <div className="book-section-head">
+          <span className="book-step">2</span>
+          <div>
+            <h3>Pick a date</h3>
+            <p>{selectedDateLabel || "Choose a day on the calendar"}</p>
+          </div>
+        </div>
+        <div className="book-section-body book-section-body--calendar">
+          <DateCalendar selected={bookingDate} onSelect={onDateSelect} />
+        </div>
+      </section>
+
+      <section className="book-section">
+        <div className="book-section-head">
+          <span className="book-step">3</span>
+          <div>
+            <h3>Choose hours</h3>
+            <p>
+              Select consecutive hours · {space.openHour}:00–
+              {space.closeHour}:00
+            </p>
+          </div>
           <button type="button" className="text-btn" onClick={selectAllDay}>
             Book available day
           </button>
         </div>
-        <p className="hint">
-          Select consecutive hours.{" "}
-          {space.maxCapacity > 1
-            ? `Grounds can overlap until the shared party total hits ${space.maxCapacity}.`
-            : "Glass House is exclusive — one booking at a time."}
-        </p>
 
-        {loadingSlots ? (
-          <p className="hint">Loading availability…</p>
-        ) : (
-          <div className="slot-grid">
-            {(slots ?? []).map((slot) => {
-              const canBook =
-                slot.available && slot.remainingCapacity >= partySize;
-              const selected = selectedHours.includes(slot.hour);
+        <div className="book-section-body">
+          <p className="hint">
+            {space.maxCapacity > 1
+              ? `Grounds can overlap until the shared party total hits ${space.maxCapacity}.`
+              : "Glass House is exclusive — one booking at a time."}
+          </p>
 
-              return (
-                <button
-                  key={slot.hour}
-                  type="button"
-                  disabled={!canBook && !selected}
-                  className={[
-                    "slot",
-                    selected ? "selected" : "",
-                    !canBook ? "unavailable" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onClick={() =>
-                    toggleHour(
-                      slot.hour,
-                      slot.available,
-                      slot.remainingCapacity,
-                    )
-                  }
-                >
-                  <span className="slot-time">{slot.label}</span>
-                  <span className="slot-meta">
-                    {canBook
-                      ? space.maxCapacity > 1
-                        ? `${slot.remainingCapacity} open`
-                        : "Open"
-                      : "Full"}
-                  </span>
-                </button>
-              );
-            })}
+          {loadingSlots ? (
+            <p className="hint">Loading availability…</p>
+          ) : (
+            <div className="slot-grid">
+              {(slots ?? []).map((slot) => {
+                const canBook =
+                  slot.available && slot.remainingCapacity >= partySize;
+                const selected = selectedHours.includes(slot.hour);
+
+                return (
+                  <button
+                    key={slot.hour}
+                    type="button"
+                    disabled={!canBook && !selected}
+                    className={[
+                      "slot",
+                      selected ? "selected" : "",
+                      !canBook ? "unavailable" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onClick={() =>
+                      toggleHour(
+                        slot.hour,
+                        slot.available,
+                        slot.remainingCapacity,
+                      )
+                    }
+                  >
+                    <span className="slot-time">{slot.label}</span>
+                    <span className="slot-meta">
+                      {canBook
+                        ? space.maxCapacity > 1
+                          ? `${slot.remainingCapacity} open`
+                          : "Open"
+                        : "Full"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="book-section">
+        <div className="book-section-head">
+          <span className="book-step">4</span>
+          <div>
+            <h3>Your details</h3>
+            <p>We’ll send your confirmation here.</p>
           </div>
-        )}
-      </div>
+        </div>
 
-      <div className="field-grid">
-        <label className="field">
-          <span>Full name</span>
-          <input
-            required
-            value={customerName}
-            onChange={(event) => setCustomerName(event.target.value)}
-            autoComplete="name"
-          />
-        </label>
-        <label className="field">
-          <span>Email</span>
-          <input
-            required
-            type="email"
-            value={customerEmail}
-            onChange={(event) => setCustomerEmail(event.target.value)}
-            autoComplete="email"
-          />
-        </label>
-        <label className="field">
-          <span>Phone (optional)</span>
-          <input
-            type="tel"
-            value={customerPhone}
-            onChange={(event) => setCustomerPhone(event.target.value)}
-            autoComplete="tel"
-          />
-        </label>
-      </div>
+        <div className="book-section-body field-grid">
+          <label className="field">
+            <span>Full name</span>
+            <input
+              required
+              value={customerName}
+              onChange={(event) => setCustomerName(event.target.value)}
+              autoComplete="name"
+            />
+          </label>
+          <label className="field">
+            <span>Email</span>
+            <input
+              required
+              type="email"
+              value={customerEmail}
+              onChange={(event) => setCustomerEmail(event.target.value)}
+              autoComplete="email"
+            />
+          </label>
+          <label className="field">
+            <span>Phone (optional)</span>
+            <input
+              type="tel"
+              value={customerPhone}
+              onChange={(event) => setCustomerPhone(event.target.value)}
+              autoComplete="tel"
+            />
+          </label>
+        </div>
+      </section>
 
       <div className="summary">
         <div>
           <p className="summary-label">Your booking</p>
           <p className="summary-detail">
             {selectedRange
-              ? `${formatHourLabel(selectedRange.startHour)} – ${formatHourLabel(selectedRange.endHour)} · ${hoursCount} hour${hoursCount === 1 ? "" : "s"}`
-              : "Select hours to continue"}
+              ? `${selectedDateLabel} · ${formatHourLabel(selectedRange.startHour)} – ${formatHourLabel(selectedRange.endHour)} · ${hoursCount} hour${hoursCount === 1 ? "" : "s"}`
+              : "Select a date and hours to continue"}
           </p>
         </div>
         <div className="summary-total">

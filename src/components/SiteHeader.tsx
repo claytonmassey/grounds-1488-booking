@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation";
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const onHero = pathname === "/";
+  const onHome = pathname === "/";
 
   return (
-    <header className={onHero ? "site-header site-header-hero" : "site-header"}>
+    <header className="site-header">
       <Link href="/" className="brand-mark">
-        <span className="brand-name">Grounds 1488</span>
+        <span className={onHome ? "sr-only" : "brand-name"}>Grounds 1488</span>
       </Link>
       <nav className="site-nav">
         <Link href="/book/grounds">The Grounds</Link>

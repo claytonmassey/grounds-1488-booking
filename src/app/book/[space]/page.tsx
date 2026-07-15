@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BookingFlow } from "@/components/BookingFlow";
-import { buildDayOptions, getSpaceBySlug } from "@/lib/booking";
+import { getSpaceBySlug } from "@/lib/booking";
 import { SPACE_COPY, slugFromPath } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +37,6 @@ export default async function BookSpacePage({
   if (!slug) notFound();
 
   const space = await getSpaceBySlug(slug);
-  const dayOptions = buildDayOptions(60);
 
   return (
     <div className="page-shell">
@@ -56,7 +55,6 @@ export default async function BookSpacePage({
             openHour: space.openHour,
             closeHour: space.closeHour,
           }}
-          dayOptions={dayOptions}
           canceled={query.canceled === "1"}
         />
       </div>
