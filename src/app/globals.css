@@ -763,6 +763,10 @@ button.btn-book {
   margin: 0 auto;
 }
 
+.page-shell-inner--wide {
+  width: min(1100px, 100%);
+}
+
 .section-kicker {
   margin: 0 0 0.65rem;
   font-size: 0.78rem;
@@ -1626,6 +1630,118 @@ button.btn-book {
 
 .logout-form {
   margin-top: 2rem;
+}
+
+.admin-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.25rem;
+  margin: 0 0 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.84rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.admin-nav a {
+  color: var(--ink);
+  opacity: 0.55;
+}
+
+.admin-nav a:hover,
+.admin-nav a.is-active {
+  opacity: 1;
+}
+
+.admin-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.85rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-table th {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 500;
+  background: var(--bg-soft);
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-table strong {
+  display: block;
+  font-weight: 500;
+}
+
+.admin-table-sub {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.admin-status {
+  display: inline-block;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--line);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-status--ok {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.admin-status--pending {
+  background: var(--bg-soft);
+}
+
+.admin-status--muted {
+  opacity: 0.55;
+}
+
+.admin-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.admin-flag input {
+  width: 1rem;
+  height: 1rem;
+}
+
+.admin-users .hint {
+  margin-top: 1rem;
 }
 
 .admin-cms {

@@ -1,20 +1,18 @@
-import Link from "next/link";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { BookingPurpose, SpaceSlug } from "@prisma/client";
 import { AdminCmsForm } from "@/app/admin/AdminCmsForm";
-import { getSession } from "@/lib/auth";
+import { AdminNav } from "@/components/AdminNav";
+import { requireAdminPage } from "@/lib/admin";
 import {
   asGallery,
   DEFAULT_SETTINGS,
   DEFAULT_SPACE_MARKETING,
 } from "@/lib/content";
-import { spacePath } from "@/lib/constants";
 import { logoutAction } from "@/lib/actions";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
-  title: "Admin",
+  title: "Content · Admin",
 };
 
 export const dynamic = "force-dynamic";
@@ -32,10 +30,8 @@ function asPurposes(value: unknown): BookingPurpose[] {
   return list.length > 0 ? list : [BookingPurpose.PHOTOGRAPHY];
 }
 
-export default async function AdminPage() {
-  const session = await getSession();
-  if (!session) redirect("/login?next=/admin");
-  if (session.role !== "ADMIN") redirect("/account");
+export default async function AdminContentPage() {
+  await requireAdminPage("/admin");
 
   const [settingsRow, spaces] = await Promise.all([
     prisma.siteSettings.findUnique({ where: { id: "default" } }),
@@ -77,18 +73,9 @@ export default async function AdminPage() {
         <p className="section-kicker">Admin</p>
         <h1 className="page-title">Site content</h1>
         <p className="page-lede">
-          Update homepage copy, space pages, galleries, and rates. Changes
-          appear on the public site right away.
+          Update homepage copy, space pages, galleries, and rates.
         </p>
-        <p className="hint" style={{ marginBottom: "1.5rem" }}>
-          <Link href="/account">← My bookings</Link>
-          {" · "}
-          <Link href="/">View site</Link>
-          {" · "}
-          <Link href={`/spaces/${spacePath("GROUNDS")}`}>The Grounds</Link>
-          {" · "}
-          <Link href={`/spaces/${spacePath("GLASS_HOUSE")}`}>Glass House</Link>
-        </p>
+        <AdminNav current="content" />
 
         <AdminCmsForm
           initialSettings={settings}

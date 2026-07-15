@@ -54,7 +54,9 @@ export function SiteHeader() {
         </Link>
         {user ? (
           <>
-            {user.role === "ADMIN" ? <Link href="/admin">Admin</Link> : null}
+            {user.role === "ADMIN" ? (
+              <Link href="/admin/bookings">Admin</Link>
+            ) : null}
             <Link href="/account">Account</Link>
           </>
         ) : (

@@ -54,7 +54,7 @@ export default async function AccountPage() {
 
         {session.role === "ADMIN" ? (
           <p className="hint" style={{ marginBottom: "1.5rem" }}>
-            <Link href="/admin">Open admin CMS →</Link>
+            <Link href="/admin/bookings">Open admin →</Link>
           </p>
         ) : null}
 

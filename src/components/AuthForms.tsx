@@ -45,7 +45,7 @@ function AuthForm({ mode }: { mode: Mode }) {
 
       const role = data.user?.role;
       if (role === "ADMIN" && (next === "/account" || !next)) {
-        router.push("/admin");
+        router.push("/admin/bookings");
       } else {
         router.push(next);
       }
