@@ -25,26 +25,60 @@ enum BookingStatus {
   EXPIRED
 }
 
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(CUSTOMER)
+  bookings     Booking[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model Space {
-  id          String   @id @default(cuid())
-  slug        SpaceSlug @unique
-  name        String
-  description String
+  id           String     @id @default(cuid())
+  slug         SpaceSlug  @unique
+  name         String
+  description  String
+  /// Marketing kicker on space cards (e.g. "Outdoors")
+  kicker       String     @default("")
+  /// Short tagline for booking page
+  tagline      String     @default("")
+  /// Home card blurb
+  cardBlurb    String     @default("")
+  /// Bullet list shown on home cards (JSON string[])
+  bullets      Json       @default("[]")
+  /// Allowed purposes (JSON BookingPurpose[])
+  purposes     Json       @default("[\"PHOTOGRAPHY\"]")
   /// Hourly rate in cents
-  hourlyRate  Int
+  hourlyRate   Int
   /// Max concurrent party size across overlapping bookings
-  maxCapacity Int
-  openHour    Int      @default(8)
-  closeHour   Int      @default(20)
-  bookings    Booking[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  maxCapacity  Int
+  openHour     Int        @default(8)
+  closeHour    Int        @default(20)
+  /// Long-form intro on the dedicated space page
+  pageIntro    String     @default("")
+  /// Additional body copy for the space page
+  pageBody     String     @default("")
+  /// Gallery images JSON: [{ url, alt, caption? }]
+  gallery      Json       @default("[]")
+  bookings     Booking[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model Booking {
   id                    String         @id @default(cuid())
   spaceId               String
   space                 Space          @relation(fields: [spaceId], references: [id])
+  userId                String?
+  user                  User?          @relation(fields: [userId], references: [id])
   customerName          String
   customerEmail         String
   customerPhone         String?
@@ -65,4 +99,15 @@ model Booking {
 
   @@index([spaceId, bookingDate, status])
   @@index([status, createdAt])
+  @@index([userId])
+  @@index([customerEmail])
+}
+
+model SiteSettings {
+  id          String   @id @default("default")
+  siteName    String   @default("Grounds Collective")
+  homeEyebrow String
+  homeLede    String
+  footerText  String
+  updatedAt   DateTime @updatedAt
 }

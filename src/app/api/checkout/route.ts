@@ -5,6 +5,7 @@ import {
   bookingRequestSchema,
   getSpaceBySlug,
 } from "@/lib/booking";
+import { getSession } from "@/lib/auth";
 import { spacePath } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
@@ -13,6 +14,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = bookingRequestSchema.parse(await request.json());
     const space = await getSpaceBySlug(body.spaceSlug);
+    const session = await getSession();
 
     await assertBookingAvailable({
       space,
@@ -27,11 +29,23 @@ export async function POST(request: NextRequest) {
     const totalAmountCents = hours * space.hourlyRate;
     const origin = request.nextUrl.origin;
 
+    let userId: string | null = null;
+    if (session) {
+      userId = session.id;
+    } else {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: body.customerEmail.toLowerCase() },
+        select: { id: true },
+      });
+      userId = existingUser?.id ?? null;
+    }
+
     const booking = await prisma.booking.create({
       data: {
         spaceId: space.id,
+        userId,
         customerName: body.customerName,
-        customerEmail: body.customerEmail,
+        customerEmail: body.customerEmail.toLowerCase(),
         customerPhone: body.customerPhone || null,
         purpose: body.purpose,
         partySize: body.partySize,
@@ -45,7 +59,7 @@ export async function POST(request: NextRequest) {
     });
 
     const stripe = getStripe();
-    const session = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: body.customerEmail,
       line_items: [
@@ -71,11 +85,11 @@ export async function POST(request: NextRequest) {
 
     await prisma.booking.update({
       where: { id: booking.id },
-      data: { stripeSessionId: session.id },
+      data: { stripeSessionId: checkoutSession.id },
     });
 
     return NextResponse.json({
-      checkoutUrl: session.url,
+      checkoutUrl: checkoutSession.url,
       bookingId: booking.id,
     });
   } catch (error) {

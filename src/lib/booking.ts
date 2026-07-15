@@ -141,7 +141,17 @@ export async function assertBookingAvailable(input: {
     );
   }
 
-  const allowedPurposes = SPACE_COPY[space.slug].purposes;
+  const storedPurposes = Array.isArray(space.purposes)
+    ? space.purposes.filter(
+        (item): item is BookingPurpose =>
+          typeof item === "string" &&
+          Object.values(BookingPurpose).includes(item as BookingPurpose),
+      )
+    : [];
+  const allowedPurposes =
+    storedPurposes.length > 0
+      ? storedPurposes
+      : SPACE_COPY[space.slug].purposes;
   if (!allowedPurposes.includes(purpose)) {
     throw new Error(
       `${space.name} does not support ${purpose.toLowerCase()} bookings.`,

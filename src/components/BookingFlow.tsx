@@ -8,10 +8,9 @@ import {
   BookingPurpose,
   formatHourLabel,
   formatMoney,
-  getSpaceConfig,
-  SPACE_COPY,
   SpaceSlug,
 } from "@/lib/constants";
+import type { SpaceContentView } from "@/lib/content";
 
 type HourSlot = {
   hour: number;
@@ -22,23 +21,31 @@ type HourSlot = {
 
 type Props = {
   slug: SpaceSlug;
+  space: SpaceContentView;
   canceled?: boolean;
+  initialCustomer?: { name: string; email: string };
 };
 
 function todayValue() {
   return format(new Date(), "yyyy-MM-dd");
 }
 
-export function BookingFlow({ slug, canceled = false }: Props) {
-  const space = getSpaceConfig(slug);
-  const purposes = SPACE_COPY[slug].purposes;
+export function BookingFlow({
+  slug,
+  space,
+  canceled = false,
+  initialCustomer,
+}: Props) {
+  const purposes = space.purposes;
   const [purpose, setPurpose] = useState<BookingPurpose>(purposes[0]);
   const [bookingDate, setBookingDate] = useState(todayValue);
   const [slots, setSlots] = useState<HourSlot[] | null>(null);
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
   const [partySize, setPartySize] = useState(1);
-  const [customerName, setCustomerName] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerName, setCustomerName] = useState(initialCustomer?.name ?? "");
+  const [customerEmail, setCustomerEmail] = useState(
+    initialCustomer?.email ?? "",
+  );
   const [customerPhone, setCustomerPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();

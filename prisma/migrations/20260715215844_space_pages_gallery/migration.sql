@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Space" ADD COLUMN     "gallery" JSONB NOT NULL DEFAULT '[]',
+ADD COLUMN     "pageBody" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "pageIntro" TEXT NOT NULL DEFAULT '';

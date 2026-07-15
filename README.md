@@ -1,4 +1,4 @@
-# Grounds 1488 Booking
+# Grounds Collective Booking
 
 Hourly booking app for **The Grounds** ($60/hr, photography & events) and **The Glass House** ($125/hr, photography only). Built with Next.js, Prisma, PostgreSQL, and Stripe Checkout. Designed to deploy on Vercel.
 
@@ -10,6 +10,8 @@ Hourly booking app for **The Grounds** ($60/hr, photography & events) and **The 
   - **Glass House**: exclusive — capacity **1**
 - Stripe Checkout payment flow + webhook confirmation
 - Pending holds expire after 30 minutes if payment is not completed
+- Customer **register / log in** to track purchases on `/account`
+- **Admin CMS** at `/admin` to edit home copy, space marketing, rates, and hours
 
 ## Setup
 
@@ -32,18 +34,22 @@ You need:
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | Postgres connection string |
+| `DATABASE_URL_UNPOOLED` | Unpooled URL for migrations |
 | `STRIPE_SECRET_KEY` | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Optional publishable key |
 | `NEXT_PUBLIC_APP_URL` | App origin (local or production URL) |
+| `AUTH_SECRET` | Random secret for session cookies |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Seeded admin login |
 
 ### 3. Database
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma migrate dev
 npm run db:seed
 ```
 
+Default admin (override via env): `admin@groundscollective.com` / `changeme-admin`.
 ### 4. Run
 
 ```bash

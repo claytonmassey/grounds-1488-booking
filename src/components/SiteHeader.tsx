@@ -2,44 +2,65 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { InstantBookLink } from "@/components/InstantBookLink";
+import { useEffect, useState } from "react";
+import { Logo } from "@/components/Logo";
+
+type SessionUser = {
+  id: string;
+  email: string;
+  name: string;
+  role: "CUSTOMER" | "ADMIN";
+};
 
 export function SiteHeader() {
   const pathname = usePathname();
   const onHome = pathname === "/";
-  const onBookPage = pathname.startsWith("/book/");
+  const [user, setUser] = useState<SessionUser | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me")
+      .then((response) => response.json())
+      .then((data) => {
+        if (!cancelled) setUser(data.user ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setUser(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   return (
     <header className="site-header">
       <Link href="/" className="brand-mark" prefetch={!onHome}>
-        <span className={onHome ? "sr-only" : "brand-name"}>Grounds 1488</span>
+        <Logo size={1.75} withWordmark={!onHome} />
       </Link>
       <nav className="site-nav">
-        {onBookPage ? (
+        <Link
+          href="/spaces/grounds"
+          className={pathname.startsWith("/spaces/grounds") ? "is-active" : undefined}
+        >
+          The Grounds
+        </Link>
+        <Link
+          href="/spaces/glass-house"
+          className={
+            pathname.startsWith("/spaces/glass-house") ? "is-active" : undefined
+          }
+        >
+          Glass House
+        </Link>
+        {user ? (
           <>
-            <Link href="/book/grounds" prefetch={false}>
-              The Grounds
-            </Link>
-            <Link href="/book/glass-house" prefetch={false}>
-              Glass House
-            </Link>
+            {user.role === "ADMIN" ? <Link href="/admin">Admin</Link> : null}
+            <Link href="/account">Account</Link>
           </>
         ) : (
           <>
-            <InstantBookLink
-              href="/book/grounds"
-              slug="GROUNDS"
-              className="nav-book-link"
-            >
-              The Grounds
-            </InstantBookLink>
-            <InstantBookLink
-              href="/book/glass-house"
-              slug="GLASS_HOUSE"
-              className="nav-book-link"
-            >
-              Glass House
-            </InstantBookLink>
+            <Link href="/login">Log in</Link>
+            <Link href="/register">Register</Link>
           </>
         )}
       </nav>

@@ -1,67 +1,82 @@
+import Link from "next/link";
 import { InstantBookLink } from "@/components/InstantBookLink";
+import { Logo } from "@/components/Logo";
+import { getSiteSettings, listSpaceContent } from "@/lib/content";
+import { spacePath } from "@/lib/constants";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const [settings, spaces] = await Promise.all([
+    getSiteSettings(),
+    listSpaceContent(),
+  ]);
+
   return (
     <div className="home-page">
       <header className="home-intro">
-        <p className="home-eyebrow">Photography &amp; event bookings</p>
-        <h1 className="home-brand">Grounds 1488</h1>
-        <p className="home-lede">
-          Two friendly spaces to shoot or gather — pick the one that fits your
-          day, then book by the hour.
-        </p>
+        <p className="home-eyebrow">{settings.homeEyebrow}</p>
+        <h1 className="home-brand">
+          <Logo className="logo--hero" size={3.25} withWordmark />
+        </h1>
+        <p className="home-lede">{settings.homeLede}</p>
       </header>
 
       <section className="space-select" aria-label="Choose a space">
-        <article className="space-card space-card-grounds">
-          <div className="space-card-visual" aria-hidden="true" />
-          <div className="space-card-body">
-            <p className="space-card-kicker">Outdoors</p>
-            <h2>The Grounds</h2>
-            <p>
-              Open-air grounds with soft natural light — great for portrait
-              sessions, styled shoots, and small outdoor events.
-            </p>
-            <ul>
-              <li>Photography &amp; events</li>
-              <li>$60 / hour</li>
-              <li>Shared capacity of 2</li>
-              <li>Book 1 hour, a few hours, or the day</li>
-            </ul>
-            <InstantBookLink
-              href="/book/grounds"
-              slug="GROUNDS"
-              className="btn-book"
+        {spaces.map((space) => {
+          const visualClass =
+            space.slug === "GROUNDS"
+              ? "space-card-grounds"
+              : "space-card-glass";
+          const path = spacePath(space.slug);
+          const hero = space.gallery[0];
+          return (
+            <article
+              key={space.slug}
+              className={`space-card ${visualClass}`}
             >
-              Book The Grounds
-            </InstantBookLink>
-          </div>
-        </article>
-
-        <article className="space-card space-card-glass">
-          <div className="space-card-visual" aria-hidden="true" />
-          <div className="space-card-body">
-            <p className="space-card-kicker">Indoor light</p>
-            <h2>The Glass House</h2>
-            <p>
-              A bright glass house studio made for photography — clean lines,
-              glowing light, and the space all to yourself.
-            </p>
-            <ul>
-              <li>Photography only</li>
-              <li>$125 / hour</li>
-              <li>Private — exclusive booking</li>
-              <li>Book 1 hour, a few hours, or the day</li>
-            </ul>
-            <InstantBookLink
-              href="/book/glass-house"
-              slug="GLASS_HOUSE"
-              className="btn-book"
-            >
-              Book Glass House
-            </InstantBookLink>
-          </div>
-        </article>
+              <Link
+                href={`/spaces/${path}`}
+                className="space-card-visual-link"
+              >
+                {hero ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    className="space-card-visual-image"
+                    src={hero.url}
+                    alt=""
+                  />
+                ) : (
+                  <div className="space-card-visual" aria-hidden="true" />
+                )}
+              </Link>
+              <div className="space-card-body">
+                <p className="space-card-kicker">{space.kicker}</p>
+                <h2>
+                  <Link href={`/spaces/${path}`}>{space.name}</Link>
+                </h2>
+                <p>{space.cardBlurb}</p>
+                <ul>
+                  {space.bullets.map((bullet) => (
+                    <li key={bullet}>{bullet}</li>
+                  ))}
+                </ul>
+                <div className="space-card-actions">
+                  <Link href={`/spaces/${path}`} className="text-btn">
+                    View gallery
+                  </Link>
+                  <InstantBookLink
+                    href={`/book/${path}`}
+                    slug={space.slug}
+                    className="btn-book"
+                  >
+                    Book {space.name.replace(/^The\s+/i, "")}
+                  </InstantBookLink>
+                </div>
+              </div>
+            </article>
+          );
+        })}
       </section>
     </div>
   );
