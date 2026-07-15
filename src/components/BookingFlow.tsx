@@ -3,23 +3,15 @@
 import { format } from "date-fns";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { DateCalendar } from "@/components/DateCalendar";
+import { SlotGridSkeleton } from "@/components/BookingFlowSkeleton";
 import {
   BookingPurpose,
   formatHourLabel,
   formatMoney,
+  getSpaceConfig,
   SPACE_COPY,
   SpaceSlug,
 } from "@/lib/constants";
-
-type SpaceInfo = {
-  slug: SpaceSlug;
-  name: string;
-  description: string;
-  hourlyRate: number;
-  maxCapacity: number;
-  openHour: number;
-  closeHour: number;
-};
 
 type HourSlot = {
   hour: number;
@@ -29,7 +21,7 @@ type HourSlot = {
 };
 
 type Props = {
-  space: SpaceInfo;
+  slug: SpaceSlug;
   canceled?: boolean;
 };
 
@@ -37,8 +29,9 @@ function todayValue() {
   return format(new Date(), "yyyy-MM-dd");
 }
 
-export function BookingFlow({ space, canceled = false }: Props) {
-  const purposes = SPACE_COPY[space.slug].purposes;
+export function BookingFlow({ slug, canceled = false }: Props) {
+  const space = getSpaceConfig(slug);
+  const purposes = SPACE_COPY[slug].purposes;
   const [purpose, setPurpose] = useState<BookingPurpose>(purposes[0]);
   const [bookingDate, setBookingDate] = useState(todayValue);
   const [slots, setSlots] = useState<HourSlot[] | null>(null);
@@ -56,7 +49,7 @@ export function BookingFlow({ space, canceled = false }: Props) {
     let cancelled = false;
 
     fetch(
-      `/api/availability?space=${space.slug}&date=${encodeURIComponent(bookingDate)}`,
+      `/api/availability?space=${slug}&date=${encodeURIComponent(bookingDate)}`,
     )
       .then(async (response) => {
         const data = await response.json();
@@ -77,7 +70,7 @@ export function BookingFlow({ space, canceled = false }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [bookingDate, space.slug]);
+  }, [bookingDate, slug]);
 
   const selectedRange = useMemo(() => {
     if (selectedHours.length === 0) return null;
@@ -94,8 +87,8 @@ export function BookingFlow({ space, canceled = false }: Props) {
 
   function onDateSelect(value: string) {
     setBookingDate(value);
-    setSlots(null);
     setSelectedHours([]);
+    setSlots(null);
   }
 
   function toggleHour(hour: number, available: boolean, remaining: number) {
@@ -157,7 +150,7 @@ export function BookingFlow({ space, canceled = false }: Props) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            spaceSlug: space.slug,
+            spaceSlug: slug,
             purpose,
             bookingDate,
             startHour: selectedRange.startHour,
@@ -273,23 +266,9 @@ export function BookingFlow({ space, canceled = false }: Props) {
         <div className="book-section-head">
           <span className="book-step">2</span>
           <div>
-            <h3>Pick a date</h3>
-            <p>{selectedDateLabel || "Choose a day on the calendar"}</p>
-          </div>
-        </div>
-        <div className="book-section-body book-section-body--calendar">
-          <DateCalendar selected={bookingDate} onSelect={onDateSelect} />
-        </div>
-      </section>
-
-      <section className="book-section">
-        <div className="book-section-head">
-          <span className="book-step">3</span>
-          <div>
-            <h3>Choose hours</h3>
+            <h3>Date &amp; hours</h3>
             <p>
-              Select consecutive hours · {space.openHour}:00–
-              {space.closeHour}:00
+              {selectedDateLabel || "Choose a day"} · select consecutive hours
             </p>
           </div>
           <button type="button" className="text-btn" onClick={selectAllDay}>
@@ -297,61 +276,71 @@ export function BookingFlow({ space, canceled = false }: Props) {
           </button>
         </div>
 
-        <div className="book-section-body">
-          <p className="hint">
-            {space.maxCapacity > 1
-              ? `Grounds can overlap until the shared party total hits ${space.maxCapacity}.`
-              : "Glass House is exclusive — one booking at a time."}
-          </p>
+        <div className="book-section-body book-schedule">
+          <div className="book-schedule-calendar">
+            <p className="field-label">Date</p>
+            <DateCalendar selected={bookingDate} onSelect={onDateSelect} />
+          </div>
 
-          {loadingSlots ? (
-            <p className="hint">Loading availability…</p>
-          ) : (
-            <div className="slot-grid">
-              {(slots ?? []).map((slot) => {
-                const canBook =
-                  slot.available && slot.remainingCapacity >= partySize;
-                const selected = selectedHours.includes(slot.hour);
+          <div className="book-schedule-hours">
+            <p className="field-label">
+              Hours ({space.openHour}:00–{space.closeHour}:00)
+            </p>
+            <p className="hint">
+              {space.maxCapacity > 1
+                ? `Grounds can overlap until the shared party total hits ${space.maxCapacity}.`
+                : "Glass House is exclusive — one booking at a time."}
+            </p>
 
-                return (
-                  <button
-                    key={slot.hour}
-                    type="button"
-                    disabled={!canBook && !selected}
-                    className={[
-                      "slot",
-                      selected ? "selected" : "",
-                      !canBook ? "unavailable" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    onClick={() =>
-                      toggleHour(
-                        slot.hour,
-                        slot.available,
-                        slot.remainingCapacity,
-                      )
-                    }
-                  >
-                    <span className="slot-time">{slot.label}</span>
-                    <span className="slot-meta">
-                      {canBook
-                        ? space.maxCapacity > 1
-                          ? `${slot.remainingCapacity} open`
-                          : "Open"
-                        : "Full"}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+            {loadingSlots ? (
+              <SlotGridSkeleton count={space.closeHour - space.openHour} />
+            ) : (
+              <div className="slot-grid slot-grid--compact">
+                {(slots ?? []).map((slot) => {
+                  const canBook =
+                    slot.available && slot.remainingCapacity >= partySize;
+                  const selected = selectedHours.includes(slot.hour);
+
+                  return (
+                    <button
+                      key={slot.hour}
+                      type="button"
+                      disabled={!canBook && !selected}
+                      className={[
+                        "slot",
+                        selected ? "selected" : "",
+                        !canBook ? "unavailable" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onClick={() =>
+                        toggleHour(
+                          slot.hour,
+                          slot.available,
+                          slot.remainingCapacity,
+                        )
+                      }
+                    >
+                      <span className="slot-time">{slot.label}</span>
+                      <span className="slot-meta">
+                        {canBook
+                          ? space.maxCapacity > 1
+                            ? `${slot.remainingCapacity} open`
+                            : "Open"
+                          : "Full"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
       <section className="book-section">
         <div className="book-section-head">
-          <span className="book-step">4</span>
+          <span className="book-step">3</span>
           <div>
             <h3>Your details</h3>
             <p>We’ll send your confirmation here.</p>

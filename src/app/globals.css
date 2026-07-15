@@ -60,6 +60,10 @@ select {
   font: inherit;
 }
 
+button.btn-book {
+  border: 0;
+}
+
 .site-header {
   position: relative;
   z-index: 20;
@@ -276,7 +280,7 @@ select {
 }
 
 .page-shell-inner {
-  width: min(920px, 100%);
+  width: min(960px, 100%);
   margin: 0 auto;
 }
 
@@ -363,11 +367,15 @@ select {
 }
 
 .book-section-body {
-  display: grid;
-  gap: 1rem;
+  display: block;
+}
+
+.book-section-body.book-schedule {
+  display: flex;
 }
 
 .book-section-body--split {
+  display: grid;
   gap: 1.25rem;
 }
 
@@ -382,6 +390,49 @@ select {
   width: 100%;
 }
 
+.book-schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 1.5rem;
+  align-items: start;
+}
+
+.book-schedule-calendar {
+  flex: 0 0 auto;
+  width: 17.5rem;
+  max-width: 100%;
+}
+
+.book-schedule-calendar .field-label,
+.book-schedule-hours .field-label {
+  margin-bottom: 0.55rem;
+}
+
+.book-schedule-hours {
+  display: grid;
+  gap: 0.65rem;
+  flex: 1 1 14rem;
+  min-width: min(100%, 14rem);
+}
+
+.slot-grid--compact {
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 0.45rem;
+}
+
+.slot-grid--compact .slot {
+  min-height: 3.6rem;
+  padding: 0.55rem 0.6rem;
+}
+
+.slot-grid--compact .slot-time {
+  font-size: 0.82rem;
+}
+
+.slot-grid--compact .slot-meta {
+  font-size: 0.72rem;
+}
+
 .field-label {
   margin: 0 0 0.6rem;
   font-size: 0.76rem;
@@ -392,25 +443,25 @@ select {
 }
 
 .date-calendar {
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  border-radius: 0;
+  width: min(100%, 17.5rem);
+  padding: 0.65rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 0.4rem;
 }
 
 .date-calendar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.85rem;
+  gap: 0.4rem;
+  margin-bottom: 0.55rem;
 }
 
 .cal-month {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 500;
 }
 
@@ -418,13 +469,13 @@ select {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.35rem;
-  height: 2.35rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border: 1px solid var(--line);
-  border-radius: 0.35rem;
+  border-radius: 0.3rem;
   background: var(--bg-soft);
   color: var(--ink);
-  font-size: 1.15rem;
+  font-size: 1rem;
   line-height: 1;
 }
 
@@ -443,17 +494,17 @@ select {
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.25rem;
+  gap: 0.15rem;
 }
 
 .cal-weekdays {
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.2rem;
 }
 
 .cal-weekdays span {
   text-align: center;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-soft);
 }
@@ -463,8 +514,8 @@ select {
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-size: 0.95rem;
-  border-radius: 0.35rem;
+  font-size: 0.8rem;
+  border-radius: 0.28rem;
 }
 
 .cal-day:hover:not(:disabled) {
@@ -791,4 +842,142 @@ select {
   padding: 1.5rem clamp(1.25rem, 4vw, 3rem) 2.25rem;
   color: var(--ink-soft);
   font-size: 0.9rem;
+}
+
+.nav-book-link {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nav-book-link:hover {
+  opacity: 1;
+}
+
+.instant-nav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: auto;
+  background:
+    radial-gradient(ellipse 90% 55% at 100% 0%, rgba(215, 230, 239, 0.55), transparent 58%),
+    radial-gradient(ellipse 70% 50% at 0% 18%, rgba(228, 213, 194, 0.5), transparent 55%),
+    linear-gradient(180deg, #f7f3ec 0%, #f3efe8 48%, #ebe4d8 100%);
+}
+
+.instant-nav-overlay .page-shell {
+  padding-top: 5.5rem;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.skeleton-block {
+  border-radius: 0.35rem;
+  background: linear-gradient(
+    90deg,
+    var(--bg-soft) 0%,
+    #f7f3ec 50%,
+    var(--bg-soft) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-step {
+  color: transparent !important;
+  background: var(--bg-soft) !important;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-flow {
+  pointer-events: none;
+}
+
+.skeleton-section .book-section-head {
+  border-bottom-color: rgba(42, 52, 56, 0.06);
+}
+
+.skeleton-head-copy {
+  flex: 1;
+}
+
+.skeleton-split {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .skeleton-split {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.skeleton-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+}
+
+.skeleton-fields {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 700px) {
+  .skeleton-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .skeleton-fields .skeleton-block:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.skeleton-kicker {
+  width: 8rem;
+  height: 0.85rem;
+  margin-bottom: 0.65rem;
+}
+
+.skeleton-page-title {
+  width: min(18rem, 70%);
+  height: clamp(2.4rem, 6vw, 4rem);
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-page-lede {
+  width: min(28rem, 90%);
+  height: 3.2rem;
+  margin-bottom: 2rem;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block,
+  .skeleton-step {
+    animation: none;
+  }
 }

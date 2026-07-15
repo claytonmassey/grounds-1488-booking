@@ -32,6 +32,44 @@ export const SPACE_COPY: Record<
   },
 };
 
+export type SpaceInfo = {
+  slug: SpaceSlug;
+  name: string;
+  description: string;
+  hourlyRate: number;
+  maxCapacity: number;
+  openHour: number;
+  closeHour: number;
+};
+
+/** Static space config — avoids a DB round-trip on page load. */
+export const SPACES: Record<SpaceSlug, SpaceInfo> = {
+  GROUNDS: {
+    slug: "GROUNDS",
+    name: "The Grounds",
+    description:
+      "Open-air grounds for photography and gatherings. Up to 2 guests may share overlapping hours.",
+    hourlyRate: 6000,
+    maxCapacity: 2,
+    openHour: 8,
+    closeHour: 20,
+  },
+  GLASS_HOUSE: {
+    slug: "GLASS_HOUSE",
+    name: "The Glass House",
+    description:
+      "Private glass house studio for photography. Exclusive hourly bookings.",
+    hourlyRate: 12500,
+    maxCapacity: 1,
+    openHour: 8,
+    closeHour: 20,
+  },
+};
+
+export function getSpaceConfig(slug: SpaceSlug) {
+  return SPACES[slug];
+}
+
 export function formatMoney(cents: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

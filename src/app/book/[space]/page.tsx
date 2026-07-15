@@ -1,15 +1,21 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { BookingFlow } from "@/components/BookingFlow";
-import { getSpaceBySlug } from "@/lib/booking";
-import { SPACE_COPY, slugFromPath } from "@/lib/constants";
+import { BookingForm } from "@/components/BookingForm";
+import {
+  getSpaceConfig,
+  SPACE_COPY,
+  slugFromPath,
+} from "@/lib/constants";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 type PageProps = {
   params: Promise<{ space: string }>;
-  searchParams: Promise<{ canceled?: string }>;
 };
+
+export function generateStaticParams() {
+  return [{ space: "grounds" }, { space: "glass-house" }];
+}
 
 export async function generateMetadata({
   params,
@@ -18,25 +24,21 @@ export async function generateMetadata({
   const slug = slugFromPath(spaceParam);
   if (!slug) return { title: "Book" };
 
-  const labels = slug === "GROUNDS" ? "The Grounds" : "The Glass House";
+  const space = getSpaceConfig(slug);
 
   return {
-    title: `Book ${labels}`,
+    title: `Book ${space.name}`,
     description: SPACE_COPY[slug].tagline,
   };
 }
 
-export default async function BookSpacePage({
-  params,
-  searchParams,
-}: PageProps) {
+export default async function BookSpacePage({ params }: PageProps) {
   const { space: spaceParam } = await params;
-  const query = await searchParams;
   const slug = slugFromPath(spaceParam);
 
   if (!slug) notFound();
 
-  const space = await getSpaceBySlug(slug);
+  const space = getSpaceConfig(slug);
 
   return (
     <div className="page-shell">
@@ -45,18 +47,7 @@ export default async function BookSpacePage({
         <h1 className="page-title">{space.name}</h1>
         <p className="page-lede">{space.description}</p>
 
-        <BookingFlow
-          space={{
-            slug: space.slug,
-            name: space.name,
-            description: space.description,
-            hourlyRate: space.hourlyRate,
-            maxCapacity: space.maxCapacity,
-            openHour: space.openHour,
-            closeHour: space.closeHour,
-          }}
-          canceled={query.canceled === "1"}
-        />
+        <BookingForm slug={slug} />
       </div>
     </div>
   );

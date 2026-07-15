@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { InstantBookLink } from "@/components/InstantBookLink";
 
 export default function HomePage() {
   return (
@@ -28,9 +28,13 @@ export default function HomePage() {
               <li>Shared capacity of 2</li>
               <li>Book 1 hour, a few hours, or the day</li>
             </ul>
-            <Link href="/book/grounds" className="btn-book">
+            <InstantBookLink
+              href="/book/grounds"
+              slug="GROUNDS"
+              className="btn-book"
+            >
               Book The Grounds
-            </Link>
+            </InstantBookLink>
           </div>
         </article>
 
@@ -49,9 +53,13 @@ export default function HomePage() {
               <li>Private — exclusive booking</li>
               <li>Book 1 hour, a few hours, or the day</li>
             </ul>
-            <Link href="/book/glass-house" className="btn-book">
+            <InstantBookLink
+              href="/book/glass-house"
+              slug="GLASS_HOUSE"
+              className="btn-book"
+            >
               Book Glass House
-            </Link>
+            </InstantBookLink>
           </div>
         </article>
       </section>
