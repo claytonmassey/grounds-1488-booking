@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SpaceSlug {
+  GROUNDS
+  GLASS_HOUSE
+}
+
+enum BookingPurpose {
+  PHOTOGRAPHY
+  EVENT
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+
+model Space {
+  id          String   @id @default(cuid())
+  slug        SpaceSlug @unique
+  name        String
+  description String
+  /// Hourly rate in cents
+  hourlyRate  Int
+  /// Max concurrent party size across overlapping bookings
+  maxCapacity Int
+  openHour    Int      @default(8)
+  closeHour   Int      @default(20)
+  bookings    Booking[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Booking {
+  id                    String         @id @default(cuid())
+  spaceId               String
+  space                 Space          @relation(fields: [spaceId], references: [id])
+  customerName          String
+  customerEmail         String
+  customerPhone         String?
+  purpose               BookingPurpose
+  partySize             Int
+  /// Local date of the booking (YYYY-MM-DD) for easy querying
+  bookingDate           String
+  startHour             Int
+  endHour               Int
+  hours                 Int
+  /// Total amount in cents
+  totalAmountCents      Int
+  status                BookingStatus  @default(PENDING)
+  stripeSessionId       String?        @unique
+  stripePaymentIntentId String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([spaceId, bookingDate, status])
+  @@index([status, createdAt])
+}
