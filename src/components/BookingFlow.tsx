@@ -38,6 +38,8 @@ type Props = {
   canceled?: boolean;
   initialCustomer?: { name: string; email: string };
   capacityHint?: string;
+  /** Used in seasonal terms checkbox copy. */
+  seasonalRescheduleFeeCents?: number;
 };
 
 function todayValue() {
@@ -60,6 +62,7 @@ export function BookingFlow({
   canceled = false,
   initialCustomer,
   capacityHint,
+  seasonalRescheduleFeeCents = 5000,
 }: Props) {
   const purposes = resource.purposes;
   const [purpose, setPurpose] = useState<BookingPurpose>(purposes[0]);
@@ -476,7 +479,8 @@ export function BookingFlow({
                 <strong>Seasonal Sets:</strong> I understand that cancellations
                 for studio credit are not offered for seasonal sets. Reschedules
                 for the same set within the same timeframe are available and the
-                reschedule fee is $50.
+                reschedule fee is{" "}
+                {formatMoney(seasonalRescheduleFeeCents)}.
                 <span className="terms-required"> *</span>
               </span>
             </label>

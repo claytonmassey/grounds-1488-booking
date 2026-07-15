@@ -125,6 +125,12 @@ model Booking {
   status                BookingStatus  @default(PENDING)
   stripeSessionId       String?        @unique
   stripePaymentIntentId String?
+  cancelledAt           DateTime?
+  /// CUSTOMER | ADMIN
+  cancelSource          String?
+  refundAmountCents     Int?
+  penaltyAmountCents    Int?
+  stripeRefundId        String?
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 
@@ -136,10 +142,12 @@ model Booking {
 }
 
 model SiteSettings {
-  id          String   @id @default("default")
-  siteName    String   @default("Grounds Collective")
-  homeEyebrow String
-  homeLede    String
-  footerText  String
-  updatedAt   DateTime @updatedAt
+  id                   String   @id @default("default")
+  siteName             String   @default("Grounds Collective")
+  homeEyebrow          String
+  homeLede             String
+  footerText           String
+  /// Cancellation tier rules JSON — see src/lib/cancellation.ts
+  cancellationPolicy   Json     @default("{}")
+  updatedAt            DateTime @updatedAt
 }

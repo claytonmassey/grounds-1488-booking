@@ -31,6 +31,7 @@ type SeasonalProps = {
   seasonalSetSlug: string;
   resource: BookingResourceView;
   capacityHint?: string;
+  seasonalRescheduleFeeCents?: number;
   initialCustomer?: { name: string; email: string };
 };
 
@@ -48,6 +49,7 @@ function BookingFormInner(props: Props) {
         canceled={canceled}
         initialCustomer={props.initialCustomer}
         capacityHint={props.capacityHint}
+        seasonalRescheduleFeeCents={props.seasonalRescheduleFeeCents}
       />
     );
   }

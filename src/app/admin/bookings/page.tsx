@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BookingStatus } from "@prisma/client";
 import { AdminNav } from "@/components/AdminNav";
+import { CancelBookingButton } from "@/components/CancelBookingButton";
 import { requireAdminPage } from "@/lib/admin";
 import { logoutAction } from "@/lib/actions";
 import { formatHourLabel, formatMoney } from "@/lib/constants";
@@ -68,6 +69,8 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
         <h1 className="page-title">Bookings</h1>
         <p className="page-lede">
           All reservations across The Grounds, Glass House, and Seasonal Sets.
+          Cancel applies your{" "}
+          <a href="/admin/cancellation">penalty policy</a> (you can waive it).
         </p>
         <AdminNav current="bookings" />
 
@@ -109,44 +112,68 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
                   <th>Hours</th>
                   <th>Total</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {bookings.map((booking) => (
-                  <tr key={booking.id}>
-                    <td>
-                      <strong>{booking.bookingDate}</strong>
-                      <span className="admin-table-sub">
-                        {formatHourLabel(booking.startHour)}–
-                        {formatHourLabel(booking.endHour)}
-                      </span>
-                    </td>
-                    <td>
-                      {booking.seasonalSet?.name ?? booking.space.name}
-                      {booking.seasonalSet ? (
-                        <span className="admin-table-sub">Seasonal set</span>
-                      ) : null}
-                    </td>
-                    <td>
-                      <strong>{booking.customerName}</strong>
-                      <span className="admin-table-sub">
-                        {booking.customerEmail}
-                        {booking.user ? " · account" : " · guest"}
-                      </span>
-                    </td>
-                    <td>
-                      {booking.hours}h ·{" "}
-                      {booking.purpose === "EVENT" ? "event" : "photo"} · party{" "}
-                      {booking.partySize}
-                    </td>
-                    <td>{formatMoney(booking.totalAmountCents)}</td>
-                    <td>
-                      <span className={statusClass(booking.status)}>
-                        {booking.status.toLowerCase()}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {bookings.map((booking) => {
+                  const canCancel =
+                    booking.status === BookingStatus.CONFIRMED ||
+                    booking.status === BookingStatus.PENDING;
+                  return (
+                    <tr key={booking.id}>
+                      <td>
+                        <strong>{booking.bookingDate}</strong>
+                        <span className="admin-table-sub">
+                          {formatHourLabel(booking.startHour)}–
+                          {formatHourLabel(booking.endHour)}
+                        </span>
+                      </td>
+                      <td>
+                        {booking.seasonalSet?.name ?? booking.space.name}
+                        {booking.seasonalSet ? (
+                          <span className="admin-table-sub">Seasonal set</span>
+                        ) : null}
+                      </td>
+                      <td>
+                        <strong>{booking.customerName}</strong>
+                        <span className="admin-table-sub">
+                          {booking.customerEmail}
+                          {booking.user ? " · account" : " · guest"}
+                        </span>
+                      </td>
+                      <td>
+                        {booking.hours}h ·{" "}
+                        {booking.purpose === "EVENT" ? "event" : "photo"} ·
+                        party {booking.partySize}
+                      </td>
+                      <td>
+                        {formatMoney(booking.totalAmountCents)}
+                        {booking.status === BookingStatus.CANCELLED &&
+                        booking.refundAmountCents != null ? (
+                          <span className="admin-table-sub">
+                            Refunded {formatMoney(booking.refundAmountCents)}
+                          </span>
+                        ) : null}
+                      </td>
+                      <td>
+                        <span className={statusClass(booking.status)}>
+                          {booking.status.toLowerCase()}
+                        </span>
+                      </td>
+                      <td>
+                        {canCancel ? (
+                          <CancelBookingButton
+                            bookingId={booking.id}
+                            mode="admin"
+                          />
+                        ) : (
+                          <span className="hint">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

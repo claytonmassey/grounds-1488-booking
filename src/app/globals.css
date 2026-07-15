@@ -1684,6 +1684,54 @@ button.btn-book {
   line-height: 1.6;
 }
 
+.policies-page .policies-section ul {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.cancel-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.cancel-modal {
+  width: min(28rem, 100%);
+  padding: 1.35rem 1.4rem 1.25rem;
+  background: var(--paper, #fff);
+  border: 1px solid var(--line, #ddd);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cancel-modal h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.cancel-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.85rem;
+  margin-top: 0.35rem;
+}
+
+.submit-btn--danger {
+  background: #111;
+  width: auto;
+  min-width: 10rem;
+}
+
 .nav-book-link {
   border: 0;
   background: transparent;

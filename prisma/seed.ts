@@ -319,6 +319,14 @@ async function main() {
         "Three ways to shoot — The Grounds, Glass House, and rotating Seasonal Sets. Pick what fits, then book by the hour.",
       footerText:
         "Grounds Collective · Hourly bookings for The Grounds, Glass House & Seasonal Sets",
+      cancellationPolicy: {
+        fullRefundHours: 48,
+        partialRefundHours: 24,
+        partialRefundPercent: 50,
+        lateRefundPercent: 0,
+        seasonalCancelRefundPercent: 0,
+        seasonalRescheduleFeeCents: 5000,
+      },
     },
     create: {
       id: "default",
@@ -328,6 +336,14 @@ async function main() {
         "Three ways to shoot — The Grounds, Glass House, and rotating Seasonal Sets. Pick what fits, then book by the hour.",
       footerText:
         "Grounds Collective · Hourly bookings for The Grounds, Glass House & Seasonal Sets",
+      cancellationPolicy: {
+        fullRefundHours: 48,
+        partialRefundHours: 24,
+        partialRefundPercent: 50,
+        lateRefundPercent: 0,
+        seasonalCancelRefundPercent: 0,
+        seasonalRescheduleFeeCents: 5000,
+      },
     },
   });
 

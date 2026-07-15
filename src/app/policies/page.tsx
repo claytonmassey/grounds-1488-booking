@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import {
+  describePolicy,
+  getCancellationPolicy,
+} from "@/lib/cancellation";
+import { formatMoney } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Policies & Terms",
@@ -7,7 +12,12 @@ export const metadata: Metadata = {
     "Terms of service, privacy policy, and studio booking policies for Grounds Collective.",
 };
 
-export default function PoliciesPage() {
+export const dynamic = "force-dynamic";
+
+export default async function PoliciesPage() {
+  const policy = await getCancellationPolicy();
+  const copy = describePolicy(policy);
+
   return (
     <div className="page-shell">
       <div className="page-shell-inner policies-page">
@@ -50,15 +60,26 @@ export default function PoliciesPage() {
         <section className="policies-section" id="booking">
           <h2>Booking &amp; cancellation</h2>
           <p>
-            Standard space bookings (The Grounds and Glass House) may be
-            canceled or rescheduled according to the confirmation email for
-            your reservation. Seasonal Sets follow a stricter policy below.
+            You can cancel from your account (or an admin can cancel on your
+            behalf). Refunds follow the notice windows below and are returned to
+            the original payment method via Stripe when eligible.
           </p>
           <p>
-            <strong>Seasonal Sets:</strong> Cancellations for studio credit are
-            not offered. Reschedules for the same set within the same
-            availability window are available for a $50 reschedule fee.
+            <strong>The Grounds &amp; Glass House</strong>
           </p>
+          <ul>
+            {copy.spaces.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          <p>
+            <strong>Seasonal Sets</strong>
+          </p>
+          <ul>
+            {copy.seasonal.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
           <p>
             Pets are welcome. There is a $25 pet fee; a link to pay will be
             included in your confirmation email when applicable.
@@ -77,9 +98,10 @@ export default function PoliciesPage() {
         </section>
 
         <p className="hint">
-          Questions?{" "}
-          <Link href="/">Return home</Link> or reach out using the contact
-          details on your confirmation email.
+          Current seasonal reschedule fee:{" "}
+          {formatMoney(policy.seasonalRescheduleFeeCents)}. Questions?{" "}
+          <Link href="/">Return home</Link> or use the contact details on your
+          confirmation email.
         </p>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BookingForm } from "@/components/BookingForm";
 import { getSession } from "@/lib/auth";
 import { getSeasonalSetBySlug } from "@/lib/booking";
+import { getCancellationPolicy } from "@/lib/cancellation";
 import {
   formatDateRange,
   formatMoney,
@@ -39,9 +40,10 @@ function asPurposes(value: unknown): BookingPurpose[] {
 
 export default async function BookSeasonalSetPage({ params }: PageProps) {
   const { slug } = await params;
-  const [set, session] = await Promise.all([
+  const [set, session, policy] = await Promise.all([
     getSeasonalSetBySlug(slug),
     getSession(),
+    getCancellationPolicy(),
   ]);
 
   if (!set || !set.published) notFound();
@@ -83,6 +85,7 @@ export default async function BookSeasonalSetPage({ params }: PageProps) {
             availableFrom: set.availableFrom,
             availableTo: set.availableTo,
           }}
+          seasonalRescheduleFeeCents={policy.seasonalRescheduleFeeCents}
           capacityHint={
             set.maxCapacity > 1
               ? `This set can overlap until the shared party total hits ${set.maxCapacity}.`

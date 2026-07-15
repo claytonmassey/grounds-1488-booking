@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { BookingStatus } from "@prisma/client";
+import { CancelBookingButton } from "@/components/CancelBookingButton";
 import { logoutAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
 import { formatHourLabel, formatMoney, spacePath } from "@/lib/constants";
@@ -142,6 +143,7 @@ function BookingCard({
     hours: number;
     partySize: number;
     totalAmountCents: number;
+    refundAmountCents: number | null;
     space: { name: string; slug: "GROUNDS" | "GLASS_HOUSE" | "SEASONAL_SETS" };
     seasonalSet: { name: string; slug: string } | null;
   };
@@ -150,6 +152,9 @@ function BookingCard({
   const bookAgainHref = booking.seasonalSet
     ? `/book/seasonal/${booking.seasonalSet.slug}`
     : `/book/${spacePath(booking.space.slug)}`;
+  const canCancel =
+    booking.status === BookingStatus.CONFIRMED ||
+    booking.status === BookingStatus.PENDING;
 
   return (
     <li className="booking-card">
@@ -163,6 +168,10 @@ function BookingCard({
         </p>
         <p className="hint">
           {booking.purpose.toLowerCase()} · party of {booking.partySize}
+          {booking.status === BookingStatus.CANCELLED &&
+          booking.refundAmountCents != null
+            ? ` · refunded ${formatMoney(booking.refundAmountCents)}`
+            : ""}
         </p>
       </div>
       <div className="booking-card-aside">
@@ -172,6 +181,7 @@ function BookingCard({
             Continue booking
           </Link>
         ) : null}
+        {canCancel ? <CancelBookingButton bookingId={booking.id} /> : null}
       </div>
     </li>
   );

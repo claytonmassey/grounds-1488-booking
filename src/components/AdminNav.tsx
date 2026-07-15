@@ -3,6 +3,11 @@ import Link from "next/link";
 const LINKS = [
   { href: "/admin/bookings", label: "Bookings", key: "bookings" },
   { href: "/admin/seasonal-sets", label: "Seasonal Sets", key: "seasonal" },
+  {
+    href: "/admin/cancellation",
+    label: "Cancellation",
+    key: "cancellation",
+  },
   { href: "/admin", label: "Content", key: "content" },
   { href: "/admin/users", label: "Users", key: "users" },
 ] as const;
@@ -10,7 +15,7 @@ const LINKS = [
 export function AdminNav({
   current,
 }: {
-  current: "bookings" | "content" | "users" | "seasonal";
+  current: "bookings" | "content" | "users" | "seasonal" | "cancellation";
 }) {
   return (
     <nav className="admin-nav" aria-label="Admin">
