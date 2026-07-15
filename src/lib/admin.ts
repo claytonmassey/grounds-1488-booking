@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { getSession, type SessionUser } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
+import type { SessionUser } from "@/lib/session";
 
 export async function requireAdminPage(
   nextPath: string,
