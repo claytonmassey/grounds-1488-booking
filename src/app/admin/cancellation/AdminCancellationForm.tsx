@@ -178,9 +178,11 @@ export function AdminCancellationForm({ initialPolicy }: Props) {
       {error ? <p className="notice notice-error">{error}</p> : null}
       {message ? <p className="notice notice-ok">{message}</p> : null}
 
-      <button type="submit" className="submit-btn" disabled={pending}>
-        {pending ? "Saving…" : "Save cancellation policy"}
-      </button>
+      <div className="admin-form-actions">
+        <button type="submit" className="submit-btn" disabled={pending}>
+          {pending ? "Saving…" : "Save cancellation policy"}
+        </button>
+      </div>
     </form>
   );
 }

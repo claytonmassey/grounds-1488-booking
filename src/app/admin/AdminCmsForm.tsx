@@ -192,9 +192,11 @@ export function AdminCmsForm({ initialSettings, initialSpaces }: Props) {
             />
           </label>
         </div>
-        <button className="submit-btn" type="submit" disabled={pending}>
-          Save site settings
-        </button>
+        <div className="admin-form-actions">
+          <button className="submit-btn" type="submit" disabled={pending}>
+            Save site settings
+          </button>
+        </div>
       </form>
 
       {spaces.map((space, index) => (
@@ -418,21 +420,23 @@ export function AdminCmsForm({ initialSettings, initialSpaces }: Props) {
             ))}
             <button
               type="button"
-              className="choice"
+              className="admin-ghost-btn"
               onClick={() => addGalleryImage(space.slug)}
             >
               Add image
             </button>
           </div>
 
-          <button
-            className="submit-btn"
-            type="button"
-            disabled={pending}
-            onClick={() => saveSpace(space.slug)}
-          >
-            Save {space.name}
-          </button>
+          <div className="admin-form-actions">
+            <button
+              className="submit-btn"
+              type="button"
+              disabled={pending}
+              onClick={() => saveSpace(space.slug)}
+            >
+              Save {space.name}
+            </button>
+          </div>
         </div>
       ))}
     </div>

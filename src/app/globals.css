@@ -1176,6 +1176,9 @@ button.btn-book {
 }
 
 .admin-ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--ink);
   background: transparent;
   color: var(--ink);
@@ -1187,9 +1190,14 @@ button.btn-book {
   cursor: pointer;
 }
 
-.admin-ghost-btn:hover {
+.admin-ghost-btn:hover:not(:disabled) {
   background: var(--ink);
   color: #fff;
+}
+
+.admin-ghost-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .admin-empty-card {
@@ -1498,10 +1506,14 @@ button.btn-book {
   margin-top: auto;
   min-height: 2.9rem;
   padding: 0.7rem 1.25rem;
+  border: 0;
   border-radius: 0;
   background: var(--ink);
   color: #ffffff;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .btn-book:hover {
@@ -2022,14 +2034,20 @@ button.btn-book {
 }
 
 .submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 11rem;
   min-height: 3.1rem;
+  padding: 0.7rem 1.35rem;
   border: 0;
   border-radius: 0;
   background: var(--ink);
   color: #ffffff;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
 .submit-btn:hover:not(:disabled) {
@@ -2039,6 +2057,13 @@ button.btn-book {
 .submit-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Full-bleed primary actions on booking + auth forms */
+.booking-flow .submit-btn,
+.auth-form .submit-btn {
+  width: 100%;
+  min-width: 0;
 }
 
 .notice {
@@ -2561,7 +2586,18 @@ button.btn-book {
 }
 
 .logout-form {
-  margin-top: 2rem;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.logout-form .text-btn {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.logout-form .text-btn:hover {
+  color: var(--ink);
 }
 
 .admin-nav {
@@ -2681,8 +2717,10 @@ button.btn-book {
   gap: 1.25rem;
 }
 
-.admin-section .submit-btn {
+.admin-section .submit-btn,
+.admin-cms-form > .submit-btn,
+.admin-cms-form .admin-form-actions .submit-btn {
   margin-top: 1rem;
-  width: fit-content;
-  padding-inline: 1.25rem;
+  width: auto;
+  min-width: 11rem;
 }

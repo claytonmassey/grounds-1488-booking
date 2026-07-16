@@ -68,7 +68,7 @@ export function ImageUploadField({
         />
         <button
           type="button"
-          className="choice"
+          className="admin-ghost-btn"
           disabled={pending}
           onClick={() => inputRef.current?.click()}
         >
