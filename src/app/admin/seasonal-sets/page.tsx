@@ -54,8 +54,9 @@ export default async function AdminSeasonalSetsPage() {
         <p className="section-kicker">Admin</p>
         <h1 className="page-title">Seasonal Sets</h1>
         <p className="page-lede">
-          Create themed rooms with their own dates, hourly rate, and guest
-          capacity. Customers pick a set, then book hours like any other space.
+          Create themed rooms with their own dates and hourly rates. Customers
+          browse every published set, then book only inside each set&apos;s
+          window.
         </p>
         <AdminNav current="seasonal" />
         <AdminSeasonalSetsManager initialSets={initialSets} />

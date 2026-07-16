@@ -97,6 +97,12 @@ function payloadFromForm(form: FormState) {
   };
 }
 
+function hourLabel(hour: number) {
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const display = hour % 12 === 0 ? 12 : hour % 12;
+  return `${display}:00 ${suffix}`;
+}
+
 export function AdminSeasonalSetsManager({
   initialSets,
 }: {
@@ -181,17 +187,32 @@ export function AdminSeasonalSetsManager({
     });
   }
 
+  const openHour = Number(form.openHour);
+  const closeHour = Number(form.closeHour);
+  const hoursHint =
+    Number.isFinite(openHour) &&
+    Number.isFinite(closeHour) &&
+    closeHour > openHour
+      ? `${hourLabel(openHour)} – ${hourLabel(closeHour)}`
+      : null;
+
   return (
     <div className="admin-seasonal">
-      <div className="admin-seasonal-list">
+      <aside className="admin-seasonal-list">
         <div className="admin-seasonal-list-head">
-          <h2>Current sets</h2>
-          <button type="button" className="btn-book" onClick={startCreate}>
+          <div>
+            <p className="admin-panel-kicker">Library</p>
+            <h2>Current sets</h2>
+          </div>
+          <button type="button" className="admin-ghost-btn" onClick={startCreate}>
             New set
           </button>
         </div>
         {sets.length === 0 ? (
-          <p className="hint">No seasonal sets yet — create the first one.</p>
+          <div className="admin-empty-card">
+            <p>No seasonal sets yet.</p>
+            <p className="hint">Create the first themed room on the right.</p>
+          </div>
         ) : (
           <ul className="admin-seasonal-cards">
             {sets.map((set) => (
@@ -208,20 +229,25 @@ export function AdminSeasonalSetsManager({
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={set.imageUrl} alt="" />
-                  <div>
+                  <div className="admin-seasonal-card-copy">
                     <strong>{set.name}</strong>
                     <span>
                       {formatDateRange(set.availableFrom, set.availableTo)} ·{" "}
                       {formatMoney(set.hourlyRate)}/hr
                     </span>
-                    <span className="hint">
-                      {set.published ? "Published" : "Hidden"} · /{set.slug}
+                    <span
+                      className={[
+                        "admin-pill",
+                        set.published ? "admin-pill--ok" : "admin-pill--muted",
+                      ].join(" ")}
+                    >
+                      {set.published ? "Published" : "Hidden"}
                     </span>
                   </div>
                 </button>
                 <button
                   type="button"
-                  className="text-btn"
+                  className="text-btn admin-seasonal-delete"
                   disabled={pending}
                   onClick={() => onDelete(set.id)}
                 >
@@ -231,219 +257,341 @@ export function AdminSeasonalSetsManager({
             ))}
           </ul>
         )}
-      </div>
+      </aside>
 
-      <form className="admin-cms-form admin-seasonal-form" onSubmit={onSubmit}>
-        <h2>{editingId ? "Edit set" : "Create set"}</h2>
-        <label className="field">
-          <span>Name</span>
-          <input
-            required
-            value={form.name}
-            onChange={(e) => {
-              const name = e.target.value;
-              setForm((current) => ({
-                ...current,
-                name,
-                slug:
-                  !editingId || current.slug === slugify(current.name)
-                    ? slugify(name)
-                    : current.slug,
-              }));
-            }}
-          />
-        </label>
-        <label className="field">
-          <span>URL slug</span>
-          <input
-            required
-            value={form.slug}
-            onChange={(e) =>
-              setForm((current) => ({ ...current, slug: e.target.value }))
-            }
-          />
-        </label>
-        <label className="field">
-          <span>Description</span>
-          <textarea
-            rows={3}
-            value={form.description}
-            onChange={(e) =>
-              setForm((current) => ({
-                ...current,
-                description: e.target.value,
-              }))
-            }
-          />
-        </label>
-        <ImageUploadField
-          label="Image"
-          folder="seasonal"
-          value={form.imageUrl}
-          onChange={(imageUrl) =>
-            setForm((current) => ({ ...current, imageUrl }))
-          }
-        />
-        <label className="field">
-          <span>Image alt text</span>
-          <input
-            value={form.imageAlt}
-            onChange={(e) =>
-              setForm((current) => ({ ...current, imageAlt: e.target.value }))
-            }
-          />
-        </label>
-        <div className="field-grid">
-          <label className="field">
-            <span>Hourly rate ($)</span>
-            <input
-              required
-              type="number"
-              min="1"
-              step="1"
-              value={form.hourlyRateDollars}
-              onChange={(e) =>
-                setForm((current) => ({
-                  ...current,
-                  hourlyRateDollars: e.target.value,
-                }))
-              }
+      <form className="admin-seasonal-form" onSubmit={onSubmit}>
+        <header className="admin-form-header">
+          <div>
+            <p className="admin-panel-kicker">
+              {editingId ? "Editing" : "New"}
+            </p>
+            <h2>{editingId ? "Edit set" : "Create set"}</h2>
+            <p className="hint">
+              Visible anytime when published — bookable only inside the date
+              window.
+            </p>
+          </div>
+          {form.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={form.imageUrl}
+              alt=""
+              className="admin-form-preview"
             />
-          </label>
-          <label className="field">
-            <span>Open hour</span>
-            <input
-              required
-              type="number"
-              min="0"
-              max="23"
-              value={form.openHour}
-              onChange={(e) =>
-                setForm((current) => ({ ...current, openHour: e.target.value }))
-              }
-            />
-          </label>
-          <label className="field">
-            <span>Close hour</span>
-            <input
-              required
-              type="number"
-              min="1"
-              max="24"
-              value={form.closeHour}
-              onChange={(e) =>
-                setForm((current) => ({
-                  ...current,
-                  closeHour: e.target.value,
-                }))
-              }
-            />
-          </label>
-          <label className="field">
-            <span>Bookable from (first day)</span>
-            <input
-              required
-              type="date"
-              value={form.availableFrom}
-              onChange={(e) =>
-                setForm((current) => ({
-                  ...current,
-                  availableFrom: e.target.value,
-                }))
-              }
-            />
-          </label>
-          <label className="field">
-            <span>Bookable through (last day)</span>
-            <input
-              required
-              type="date"
-              value={form.availableTo}
-              onChange={(e) =>
-                setForm((current) => ({
-                  ...current,
-                  availableTo: e.target.value,
-                }))
-              }
-            />
-          </label>
-          <label className="field">
-            <span>Sort order</span>
-            <input
-              type="number"
-              min="0"
-              value={form.sortOrder}
-              onChange={(e) =>
-                setForm((current) => ({
-                  ...current,
-                  sortOrder: e.target.value,
-                }))
-              }
-            />
-          </label>
-        </div>
-        <fieldset className="field-block">
-          <legend className="field-label">Purposes</legend>
-          <label className="choice-check">
-            <input
-              type="checkbox"
-              checked={form.photography}
-              onChange={(e) =>
-                setForm((current) => ({
-                  ...current,
-                  photography: e.target.checked,
-                }))
-              }
-            />
-            Photography
-          </label>
-          <label className="choice-check">
-            <input
-              type="checkbox"
-              checked={form.event}
-              onChange={(e) =>
-                setForm((current) => ({
-                  ...current,
-                  event: e.target.checked,
-                }))
-              }
-            />
-            Event
-          </label>
-        </fieldset>
-        <label className="choice-check">
-          <input
-            type="checkbox"
-            checked={form.published}
-            onChange={(e) =>
-              setForm((current) => ({
-                ...current,
-                published: e.target.checked,
-              }))
-            }
-          />
-          Published (visible on Seasonal Sets page). Guests can only book days
-          inside the bookable window above.
-        </label>
+          ) : (
+            <div className="admin-form-preview admin-form-preview--empty">
+              No image
+            </div>
+          )}
+        </header>
 
-        {form.availableFrom && form.availableTo ? (
-          <p className="hint">
-            This set stays listed when published. Booking calendar only allows{" "}
-            {form.availableFrom} through {form.availableTo}.
-          </p>
-        ) : (
-          <p className="hint">
-            Set the bookable from/through dates — the set can be visible before
-            those days open.
-          </p>
-        )}
+        <section className="admin-form-section">
+          <div className="admin-form-section-head">
+            <h3>Basics</h3>
+            <p>Name and copy shown on the Seasonal Sets page.</p>
+          </div>
+          <div className="admin-form-section-body">
+            <label className="field">
+              <span>Name</span>
+              <input
+                required
+                value={form.name}
+                placeholder="Cinnamon Sugar in the Ivy"
+                onChange={(e) => {
+                  const name = e.target.value;
+                  setForm((current) => ({
+                    ...current,
+                    name,
+                    slug:
+                      !editingId || current.slug === slugify(current.name)
+                        ? slugify(name)
+                        : current.slug,
+                  }));
+                }}
+              />
+            </label>
+            <label className="field">
+              <span>URL slug</span>
+              <div className="admin-slug-row">
+                <span className="admin-slug-prefix">/book/seasonal/</span>
+                <input
+                  required
+                  value={form.slug}
+                  onChange={(e) =>
+                    setForm((current) => ({ ...current, slug: e.target.value }))
+                  }
+                />
+              </div>
+            </label>
+            <label className="field">
+              <span>Description</span>
+              <textarea
+                rows={3}
+                value={form.description}
+                placeholder="Optional short note for the booking page"
+                onChange={(e) =>
+                  setForm((current) => ({
+                    ...current,
+                    description: e.target.value,
+                  }))
+                }
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-form-section">
+          <div className="admin-form-section-head">
+            <h3>Media</h3>
+            <p>Upload to blob storage or paste an image URL.</p>
+          </div>
+          <div className="admin-form-section-body">
+            <ImageUploadField
+              label="Cover image"
+              folder="seasonal"
+              value={form.imageUrl}
+              onChange={(imageUrl) =>
+                setForm((current) => ({ ...current, imageUrl }))
+              }
+            />
+            <label className="field">
+              <span>Alt text</span>
+              <input
+                value={form.imageAlt}
+                placeholder="Describe the room for accessibility"
+                onChange={(e) =>
+                  setForm((current) => ({
+                    ...current,
+                    imageAlt: e.target.value,
+                  }))
+                }
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-form-section">
+          <div className="admin-form-section-head">
+            <h3>Pricing &amp; hours</h3>
+            <p>
+              Hourly rate and daily open window
+              {hoursHint ? ` · ${hoursHint}` : ""}.
+            </p>
+          </div>
+          <div className="admin-form-section-body admin-form-grid">
+            <label className="field">
+              <span>Hourly rate ($)</span>
+              <input
+                required
+                type="number"
+                min="1"
+                step="1"
+                value={form.hourlyRateDollars}
+                onChange={(e) =>
+                  setForm((current) => ({
+                    ...current,
+                    hourlyRateDollars: e.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Open hour (0–23)</span>
+              <input
+                required
+                type="number"
+                min="0"
+                max="23"
+                value={form.openHour}
+                onChange={(e) =>
+                  setForm((current) => ({
+                    ...current,
+                    openHour: e.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Close hour (1–24)</span>
+              <input
+                required
+                type="number"
+                min="1"
+                max="24"
+                value={form.closeHour}
+                onChange={(e) =>
+                  setForm((current) => ({
+                    ...current,
+                    closeHour: e.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Sort order</span>
+              <input
+                type="number"
+                min="0"
+                value={form.sortOrder}
+                onChange={(e) =>
+                  setForm((current) => ({
+                    ...current,
+                    sortOrder: e.target.value,
+                  }))
+                }
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-form-section">
+          <div className="admin-form-section-head">
+            <h3>Bookable window</h3>
+            <p>
+              Guests can reserve only these calendar days. The set can still
+              appear before the window opens.
+            </p>
+          </div>
+          <div className="admin-form-section-body admin-form-grid admin-form-grid--2">
+            <label className="field">
+              <span>First day</span>
+              <input
+                required
+                type="date"
+                value={form.availableFrom}
+                onChange={(e) =>
+                  setForm((current) => ({
+                    ...current,
+                    availableFrom: e.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Last day</span>
+              <input
+                required
+                type="date"
+                value={form.availableTo}
+                onChange={(e) =>
+                  setForm((current) => ({
+                    ...current,
+                    availableTo: e.target.value,
+                  }))
+                }
+              />
+            </label>
+          </div>
+          {form.availableFrom && form.availableTo ? (
+            <p className="admin-inline-note">
+              Calendar unlocks{" "}
+              <strong>
+                {formatDateRange(form.availableFrom, form.availableTo)}
+              </strong>
+              .
+            </p>
+          ) : null}
+        </section>
+
+        <section className="admin-form-section">
+          <div className="admin-form-section-head">
+            <h3>Visibility</h3>
+            <p>What this set supports, and whether it shows publicly.</p>
+          </div>
+          <div className="admin-form-section-body">
+            <div className="admin-choice-group">
+              <p className="field-label">Purposes</p>
+              <div className="admin-choice-row">
+                <label
+                  className={[
+                    "admin-choice-chip",
+                    form.photography ? "is-on" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  <input
+                    type="checkbox"
+                    checked={form.photography}
+                    onChange={(e) =>
+                      setForm((current) => ({
+                        ...current,
+                        photography: e.target.checked,
+                      }))
+                    }
+                  />
+                  Photography
+                </label>
+                <label
+                  className={[
+                    "admin-choice-chip",
+                    form.event ? "is-on" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  <input
+                    type="checkbox"
+                    checked={form.event}
+                    onChange={(e) =>
+                      setForm((current) => ({
+                        ...current,
+                        event: e.target.checked,
+                      }))
+                    }
+                  />
+                  Event
+                </label>
+              </div>
+            </div>
+
+            <label
+              className={[
+                "admin-publish-card",
+                form.published ? "is-on" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <input
+                type="checkbox"
+                checked={form.published}
+                onChange={(e) =>
+                  setForm((current) => ({
+                    ...current,
+                    published: e.target.checked,
+                  }))
+                }
+              />
+              <span>
+                <strong>Published</strong>
+                <span className="hint">
+                  Show on the Seasonal Sets page. Booking stays limited to the
+                  date window above.
+                </span>
+              </span>
+            </label>
+          </div>
+        </section>
 
         {error ? <p className="notice notice-error">{error}</p> : null}
         {message ? <p className="notice notice-ok">{message}</p> : null}
 
-        <button type="submit" className="submit-btn" disabled={pending}>
-          {pending ? "Saving…" : editingId ? "Save changes" : "Create set"}
-        </button>
+        <div className="admin-form-actions">
+          {!editingId ? null : (
+            <button
+              type="button"
+              className="text-btn"
+              disabled={pending}
+              onClick={startCreate}
+            >
+              Clear / new
+            </button>
+          )}
+          <button type="submit" className="submit-btn" disabled={pending}>
+            {pending ? "Saving…" : editingId ? "Save changes" : "Create set"}
+          </button>
+        </div>
       </form>
     </div>
   );
