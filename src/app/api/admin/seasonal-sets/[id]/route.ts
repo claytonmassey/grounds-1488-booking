@@ -19,10 +19,20 @@ const setSchema = z
       )
       .optional(),
     description: z.string().trim().max(2000).optional().default(""),
-    imageUrl: z.string().trim().url(),
+    imageUrl: z
+      .string()
+      .trim()
+      .min(1)
+      .max(2000)
+      .refine(
+        (value) =>
+          value.startsWith("/") ||
+          value.startsWith("http://") ||
+          value.startsWith("https://"),
+        "Use a full URL or an uploaded /uploads/… path",
+      ),
     imageAlt: z.string().trim().max(200).optional().default(""),
     hourlyRateDollars: z.number().positive().max(10000),
-    maxCapacity: z.number().int().min(1).max(50),
     openHour: z.number().int().min(0).max(23),
     closeHour: z.number().int().min(1).max(24),
     availableFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -74,7 +84,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         imageUrl: body.imageUrl,
         imageAlt: body.imageAlt ?? "",
         hourlyRate: Math.round(body.hourlyRateDollars * 100),
-        maxCapacity: body.maxCapacity,
+        maxCapacity: 1,
         openHour: body.openHour,
         closeHour: body.closeHour,
         availableFrom: body.availableFrom,

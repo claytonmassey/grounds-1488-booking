@@ -210,7 +210,7 @@ export function BookingFlow({
             bookingDate,
             startHour: selectedRange.startHour,
             endHour: selectedRange.endHour,
-            partySize,
+            partySize: isSeasonal ? 1 : partySize,
             customerName,
             customerEmail,
             customerPhone,
@@ -238,9 +238,11 @@ export function BookingFlow({
 
   const hint =
     capacityHint ??
-    (resource.maxCapacity > 1
-      ? `Overlapping bookings are OK until the shared party total hits ${resource.maxCapacity}.`
-      : "Exclusive booking — one reservation at a time.");
+    (isSeasonal
+      ? "Each set is exclusive — one booking at a time."
+      : resource.maxCapacity > 1
+        ? `Overlapping bookings are OK until the shared party total hits ${resource.maxCapacity}.`
+        : "Exclusive booking — one reservation at a time.");
 
   return (
     <form className="booking-flow" onSubmit={onSubmit}>
@@ -256,11 +258,22 @@ export function BookingFlow({
           <span className="book-step">1</span>
           <div>
             <h3>Session details</h3>
-            <p>What are you booking, and for how many people?</p>
+            <p>
+              {isSeasonal
+                ? "Confirm the purpose of your shoot."
+                : "What are you booking, and for how many people?"}
+            </p>
           </div>
         </div>
 
-        <div className="book-section-body book-section-body--split">
+        <div
+          className={[
+            "book-section-body",
+            !isSeasonal ? "book-section-body--split" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
           {purposes.length > 1 ? (
             <div className="field-block">
               <p className="field-label">Purpose</p>
@@ -291,6 +304,7 @@ export function BookingFlow({
             </div>
           )}
 
+          {!isSeasonal ? (
           <div className="field-block">
             <p className="field-label">Party size (max {resource.maxCapacity})</p>
             <div className="choice-row choice-row--segmented">
@@ -325,6 +339,7 @@ export function BookingFlow({
               ))}
             </div>
           </div>
+          ) : null}
         </div>
       </section>
 
@@ -345,11 +360,18 @@ export function BookingFlow({
         <div className="book-section-body book-schedule">
           <div className="book-schedule-calendar">
             <p className="field-label">Date</p>
+            {resource.availableFrom && resource.availableTo ? (
+              <p className="hint" style={{ marginBottom: "0.65rem" }}>
+                Only bookable {resource.availableFrom} – {resource.availableTo}.
+                Other days stay blocked.
+              </p>
+            ) : null}
             <DateCalendar
               selected={bookingDate}
               onSelect={onDateSelect}
               minDate={resource.availableFrom}
               maxDate={resource.availableTo}
+              maxDaysAhead={400}
             />
           </div>
 
@@ -393,9 +415,9 @@ export function BookingFlow({
                       <span className="slot-time">{slot.label}</span>
                       <span className="slot-meta">
                         {canBook
-                          ? resource.maxCapacity > 1
-                            ? `${slot.remainingCapacity} open`
-                            : "Open"
+                          ? isSeasonal || resource.maxCapacity <= 1
+                            ? "Open"
+                            : `${slot.remainingCapacity} open`
                           : "Full"}
                       </span>
                     </button>

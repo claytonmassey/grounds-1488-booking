@@ -60,7 +60,7 @@ export default async function BookSeasonalSetPage({ params }: PageProps) {
         <h1 className="page-title">{set.name}</h1>
         <p className="page-lede">
           {set.description ||
-            `Available ${formatDateRange(set.availableFrom, set.availableTo)}. Up to ${set.maxCapacity} guest${set.maxCapacity === 1 ? "" : "s"}.`}
+            `Available ${formatDateRange(set.availableFrom, set.availableTo)}.`}
         </p>
 
         {set.imageUrl ? (
@@ -79,18 +79,14 @@ export default async function BookSeasonalSetPage({ params }: PageProps) {
             name: set.name,
             purposes,
             hourlyRate: set.hourlyRate,
-            maxCapacity: set.maxCapacity,
+            maxCapacity: 1,
             openHour: set.openHour,
             closeHour: set.closeHour,
             availableFrom: set.availableFrom,
             availableTo: set.availableTo,
           }}
           seasonalRescheduleFeeCents={policy.seasonalRescheduleFeeCents}
-          capacityHint={
-            set.maxCapacity > 1
-              ? `This set can overlap until the shared party total hits ${set.maxCapacity}.`
-              : "This set is exclusive — one booking at a time."
-          }
+          capacityHint="This set is exclusive — one booking at a time."
           initialCustomer={
             session
               ? { name: session.name, email: session.email }

@@ -10,10 +10,36 @@ import {
 export const metadata: Metadata = {
   title: "Seasonal Sets",
   description:
-    "Limited-run styled rooms — click a set to book by the hour.",
+    "Limited-run styled rooms — visible year-round, bookable only on each set’s dates.",
 };
 
 export const dynamic = "force-dynamic";
+
+type AvailabilityStatus = "open" | "upcoming" | "closed";
+
+function statusForSet(
+  availableFrom: string,
+  availableTo: string,
+  today: string,
+): AvailabilityStatus {
+  if (today < availableFrom) return "upcoming";
+  if (today > availableTo) return "closed";
+  return "open";
+}
+
+function statusLabel(
+  status: AvailabilityStatus,
+  availableFrom: string,
+  availableTo: string,
+) {
+  if (status === "open") {
+    return `Bookable ${formatDateRange(availableFrom, availableTo)}`;
+  }
+  if (status === "upcoming") {
+    return `Opens ${formatDateRange(availableFrom, availableTo)}`;
+  }
+  return `Was ${formatDateRange(availableFrom, availableTo)} · closed`;
+}
 
 export default async function SeasonalSetsPage() {
   const [marketing, sets] = await Promise.all([
@@ -22,8 +48,6 @@ export default async function SeasonalSetsPage() {
   ]);
 
   const today = new Date().toISOString().slice(0, 10);
-  const active = sets.filter((set) => set.availableTo >= today);
-  const past = sets.filter((set) => set.availableTo < today);
 
   return (
     <div className="page-shell seasonal-sets-page">
@@ -31,14 +55,16 @@ export default async function SeasonalSetsPage() {
         <p className="section-kicker">{marketing.kicker}</p>
         <h1 className="page-title">{marketing.name}</h1>
         <p className="page-lede">{marketing.pageIntro || marketing.tagline}</p>
-        <p className="seasonal-sets-prompt">Click each image below to book.</p>
+        <p className="seasonal-sets-prompt">
+          All sets stay visible — you can only book on each set&apos;s dates.
+        </p>
 
-        {active.length === 0 ? (
+        {sets.length === 0 ? (
           <div className="account-empty">
-            <h2>No sets available right now</h2>
+            <h2>No sets published yet</h2>
             <p>
-              Check back soon — new seasonal rooms will appear here when they
-              open.
+              Check back soon — seasonal rooms will appear here when they are
+              listed.
             </p>
             <Link href="/" className="btn-book">
               Browse other spaces
@@ -46,12 +72,23 @@ export default async function SeasonalSetsPage() {
           </div>
         ) : (
           <ul className="seasonal-set-grid">
-            {active.map((set) => (
-              <li key={set.id}>
-                <Link
-                  href={`/book/seasonal/${set.slug}`}
-                  className="seasonal-set-card"
-                >
+            {sets.map((set) => {
+              const status = statusForSet(
+                set.availableFrom,
+                set.availableTo,
+                today,
+              );
+              const href = `/book/seasonal/${set.slug}`;
+              const cardClass = [
+                "seasonal-set-card",
+                status === "closed" ? "is-closed" : "",
+                status === "upcoming" ? "is-upcoming" : "",
+              ]
+                .filter(Boolean)
+                .join(" ");
+
+              const body = (
+                <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={set.imageUrl}
@@ -59,48 +96,36 @@ export default async function SeasonalSetsPage() {
                     className="seasonal-set-image"
                   />
                   <div className="seasonal-set-copy">
+                    <p className={`seasonal-set-status seasonal-set-status--${status}`}>
+                      {status === "open"
+                        ? "Open to book"
+                        : status === "upcoming"
+                          ? "Coming soon"
+                          : "Closed"}
+                    </p>
                     <h2>{set.name}</h2>
                     <p>
-                      {formatDateRange(set.availableFrom, set.availableTo)} ·{" "}
+                      {statusLabel(status, set.availableFrom, set.availableTo)} ·{" "}
                       {formatMoney(set.hourlyRate)} PH
                     </p>
-                    <p className="hint">
-                      Up to {set.maxCapacity} guest
-                      {set.maxCapacity === 1 ? "" : "s"}
-                    </p>
                   </div>
-                </Link>
-              </li>
-            ))}
+                </>
+              );
+
+              return (
+                <li key={set.id}>
+                  {status === "closed" ? (
+                    <div className={cardClass}>{body}</div>
+                  ) : (
+                    <Link href={href} className={cardClass}>
+                      {body}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
-
-        {past.length > 0 ? (
-          <section className="seasonal-sets-past">
-            <h2>Recently closed</h2>
-            <ul className="seasonal-set-grid seasonal-set-grid--muted">
-              {past.map((set) => (
-                <li key={set.id}>
-                  <div className="seasonal-set-card is-closed">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={set.imageUrl}
-                      alt={set.imageAlt || set.name}
-                      className="seasonal-set-image"
-                    />
-                    <div className="seasonal-set-copy">
-                      <h2>{set.name}</h2>
-                      <p>
-                        {formatDateRange(set.availableFrom, set.availableTo)} ·
-                        closed
-                      </p>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
       </div>
     </div>
   );

@@ -39,7 +39,6 @@ export default async function AdminSeasonalSetsPage() {
     imageUrl: row.imageUrl,
     imageAlt: row.imageAlt,
     hourlyRate: row.hourlyRate,
-    maxCapacity: row.maxCapacity,
     openHour: row.openHour,
     closeHour: row.closeHour,
     availableFrom: row.availableFrom,

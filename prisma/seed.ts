@@ -197,7 +197,7 @@ async function main() {
         "Browse the current sets, check availability dates, and book the room that matches your shoot.",
       gallery: seasonalGallery,
       hourlyRate: 20000,
-      maxCapacity: 4,
+      maxCapacity: 1,
       openHour: 8,
       closeHour: 20,
     },
@@ -223,7 +223,7 @@ async function main() {
         "Browse the current sets, check availability dates, and book the room that matches your shoot.",
       gallery: seasonalGallery,
       hourlyRate: 20000,
-      maxCapacity: 4,
+      maxCapacity: 1,
       openHour: 8,
       closeHour: 20,
     },
@@ -238,7 +238,7 @@ async function main() {
       hourlyRate: 20000,
       availableFrom: "2026-09-19",
       availableTo: "2026-12-25",
-      maxCapacity: 4,
+      maxCapacity: 1,
       sortOrder: 1,
     },
     {
@@ -249,7 +249,7 @@ async function main() {
       hourlyRate: 20000,
       availableFrom: "2026-09-19",
       availableTo: "2026-12-25",
-      maxCapacity: 4,
+      maxCapacity: 1,
       sortOrder: 2,
     },
     {
@@ -260,7 +260,7 @@ async function main() {
       hourlyRate: 20000,
       availableFrom: "2026-09-19",
       availableTo: "2026-12-25",
-      maxCapacity: 4,
+      maxCapacity: 1,
       sortOrder: 3,
     },
     {
@@ -271,7 +271,7 @@ async function main() {
       hourlyRate: 25000,
       availableFrom: "2026-10-24",
       availableTo: "2026-11-01",
-      maxCapacity: 4,
+      maxCapacity: 1,
       sortOrder: 4,
     },
   ];

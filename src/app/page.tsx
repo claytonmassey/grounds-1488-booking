@@ -21,9 +21,8 @@ export default async function HomePage() {
   return (
     <div className="home-page">
       <header className="home-intro">
-        <p className="home-eyebrow">{settings.homeEyebrow}</p>
         <h1 className="home-brand">
-          <Logo className="logo--hero" size={3.25} withWordmark />
+          <Logo className="logo--hero" variant="full" />
         </h1>
         <p className="home-lede">{settings.homeLede}</p>
       </header>

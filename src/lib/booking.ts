@@ -170,7 +170,7 @@ export async function seasonalSetToBookable(
     id: set.id,
     name: set.name,
     hourlyRate: set.hourlyRate,
-    maxCapacity: set.maxCapacity,
+    maxCapacity: 1,
     openHour: set.openHour,
     closeHour: set.closeHour,
     purposes: parsePurposes(set.purposes, [BookingPurpose.PHOTOGRAPHY]),
@@ -278,9 +278,15 @@ export async function assertBookingAvailable(input: {
   }
 
   const minDate = format(new Date(), "yyyy-MM-dd");
-  const maxDate = format(addDays(new Date(), 90), "yyyy-MM-dd");
+  // Seasonal sets may open further out than the default 90-day book-ahead.
+  const maxDate =
+    unit.availableTo ?? format(addDays(new Date(), 90), "yyyy-MM-dd");
   if (bookingDate < minDate || bookingDate > maxDate) {
-    throw new Error("Choose a date within the next 90 days.");
+    throw new Error(
+      unit.availableTo
+        ? `Choose a date on or before ${unit.availableTo}.`
+        : "Choose a date within the next 90 days.",
+    );
   }
 
   const slots = await getHourlyAvailability(unit, bookingDate);

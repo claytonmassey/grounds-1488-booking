@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState, useTransition } from "react";
+import { ImageUploadField } from "@/components/ImageUploadField";
 import { formatDateRange, formatMoney, slugify } from "@/lib/constants";
 
 export type AdminSeasonalSet = {
@@ -11,7 +12,6 @@ export type AdminSeasonalSet = {
   imageUrl: string;
   imageAlt: string;
   hourlyRate: number;
-  maxCapacity: number;
   openHour: number;
   closeHour: number;
   availableFrom: string;
@@ -28,7 +28,6 @@ type FormState = {
   imageUrl: string;
   imageAlt: string;
   hourlyRateDollars: string;
-  maxCapacity: string;
   openHour: string;
   closeHour: string;
   availableFrom: string;
@@ -46,7 +45,6 @@ const emptyForm = (): FormState => ({
   imageUrl: "",
   imageAlt: "",
   hourlyRateDollars: "200",
-  maxCapacity: "4",
   openHour: "8",
   closeHour: "20",
   availableFrom: "",
@@ -65,7 +63,6 @@ function formFromSet(set: AdminSeasonalSet): FormState {
     imageUrl: set.imageUrl,
     imageAlt: set.imageAlt,
     hourlyRateDollars: String(set.hourlyRate / 100),
-    maxCapacity: String(set.maxCapacity),
     openHour: String(set.openHour),
     closeHour: String(set.closeHour),
     availableFrom: set.availableFrom,
@@ -90,7 +87,6 @@ function payloadFromForm(form: FormState) {
     imageUrl: form.imageUrl,
     imageAlt: form.imageAlt,
     hourlyRateDollars: Number(form.hourlyRateDollars),
-    maxCapacity: Number(form.maxCapacity),
     openHour: Number(form.openHour),
     closeHour: Number(form.closeHour),
     availableFrom: form.availableFrom,
@@ -216,7 +212,7 @@ export function AdminSeasonalSetsManager({
                     <strong>{set.name}</strong>
                     <span>
                       {formatDateRange(set.availableFrom, set.availableTo)} ·{" "}
-                      {formatMoney(set.hourlyRate)}/hr · max {set.maxCapacity}
+                      {formatMoney(set.hourlyRate)}/hr
                     </span>
                     <span className="hint">
                       {set.published ? "Published" : "Hidden"} · /{set.slug}
@@ -280,17 +276,14 @@ export function AdminSeasonalSetsManager({
             }
           />
         </label>
-        <label className="field">
-          <span>Image URL</span>
-          <input
-            required
-            type="url"
-            value={form.imageUrl}
-            onChange={(e) =>
-              setForm((current) => ({ ...current, imageUrl: e.target.value }))
-            }
-          />
-        </label>
+        <ImageUploadField
+          label="Image"
+          folder="seasonal"
+          value={form.imageUrl}
+          onChange={(imageUrl) =>
+            setForm((current) => ({ ...current, imageUrl }))
+          }
+        />
         <label className="field">
           <span>Image alt text</span>
           <input
@@ -313,22 +306,6 @@ export function AdminSeasonalSetsManager({
                 setForm((current) => ({
                   ...current,
                   hourlyRateDollars: e.target.value,
-                }))
-              }
-            />
-          </label>
-          <label className="field">
-            <span>Max guests</span>
-            <input
-              required
-              type="number"
-              min="1"
-              max="50"
-              value={form.maxCapacity}
-              onChange={(e) =>
-                setForm((current) => ({
-                  ...current,
-                  maxCapacity: e.target.value,
                 }))
               }
             />
@@ -363,7 +340,7 @@ export function AdminSeasonalSetsManager({
             />
           </label>
           <label className="field">
-            <span>Available from</span>
+            <span>Bookable from (first day)</span>
             <input
               required
               type="date"
@@ -377,7 +354,7 @@ export function AdminSeasonalSetsManager({
             />
           </label>
           <label className="field">
-            <span>Available to</span>
+            <span>Bookable through (last day)</span>
             <input
               required
               type="date"
@@ -445,8 +422,21 @@ export function AdminSeasonalSetsManager({
               }))
             }
           />
-          Published (visible on site)
+          Published (visible on Seasonal Sets page). Guests can only book days
+          inside the bookable window above.
         </label>
+
+        {form.availableFrom && form.availableTo ? (
+          <p className="hint">
+            This set stays listed when published. Booking calendar only allows{" "}
+            {form.availableFrom} through {form.availableTo}.
+          </p>
+        ) : (
+          <p className="hint">
+            Set the bookable from/through dates — the set can be visible before
+            those days open.
+          </p>
+        )}
 
         {error ? <p className="notice notice-error">{error}</p> : null}
         {message ? <p className="notice notice-ok">{message}</p> : null}

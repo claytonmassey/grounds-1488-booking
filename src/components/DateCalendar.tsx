@@ -11,7 +11,6 @@ import {
   isSameDay,
   isSameMonth,
   max as maxDateFn,
-  min as minDateFn,
   startOfDay,
   startOfMonth,
   startOfWeek,
@@ -45,10 +44,14 @@ export function DateCalendar({
   const windowMax = addDays(today, maxDaysAhead - 1);
   const boundMin = parseBound(minDateProp);
   const boundMax = parseBound(maxDateProp);
+
+  // Seasonal sets pass an explicit window — honor it even beyond maxDaysAhead.
   const minSelectable = boundMin ? maxDateFn([today, boundMin]) : today;
-  const maxSelectable = boundMax
-    ? minDateFn([windowMax, boundMax])
-    : windowMax;
+  let maxSelectable = boundMax ?? windowMax;
+  if (isBefore(maxSelectable, minSelectable)) {
+    // Window is entirely in the past — keep calendar readable but empty.
+    maxSelectable = minSelectable;
+  }
 
   const selectedDate = selected
     ? startOfDay(new Date(`${selected}T12:00:00`))

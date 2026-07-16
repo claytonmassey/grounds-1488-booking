@@ -24,7 +24,18 @@ const spaceSchema = z.object({
   gallery: z
     .array(
       z.object({
-        url: z.string().trim().url().max(2000),
+        url: z
+          .string()
+          .trim()
+          .min(1)
+          .max(2000)
+          .refine(
+            (value) =>
+              value.startsWith("/") ||
+              value.startsWith("http://") ||
+              value.startsWith("https://"),
+            "Use a full URL or an uploaded /uploads/… path",
+          ),
         alt: z.string().trim().max(200),
         caption: z.string().trim().max(200),
       }),

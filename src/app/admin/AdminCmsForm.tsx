@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState, useTransition } from "react";
 import type { BookingPurpose, SpaceSlug } from "@prisma/client";
+import { ImageUploadField } from "@/components/ImageUploadField";
 import { spacePath } from "@/lib/constants";
 
 type SettingsState = {
@@ -370,25 +371,20 @@ export function AdminCmsForm({ initialSettings, initialSpaces }: Props) {
             <div className="admin-gallery-head">
               <h3>Gallery</h3>
               <p className="hint">
-                First image is the page hero. Use full image URLs (https://…).
+                First image is the page hero. Upload to blob storage or paste a
+                URL.
               </p>
             </div>
             {space.gallery.map((image, imageIndex) => (
               <div key={imageIndex} className="admin-gallery-row">
-                <label className="field">
-                  <span>
-                    Image URL{imageIndex === 0 ? " (hero)" : ""}
-                  </span>
-                  <input
-                    value={image.url}
-                    placeholder="https://…"
-                    onChange={(e) =>
-                      updateGallery(space.slug, imageIndex, {
-                        url: e.target.value,
-                      })
-                    }
-                  />
-                </label>
+                <ImageUploadField
+                  label={`Image${imageIndex === 0 ? " (hero)" : ""}`}
+                  folder="galleries"
+                  value={image.url}
+                  onChange={(url) =>
+                    updateGallery(space.slug, imageIndex, { url })
+                  }
+                />
                 <label className="field">
                   <span>Alt text</span>
                   <input
