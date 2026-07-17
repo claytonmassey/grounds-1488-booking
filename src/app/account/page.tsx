@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { BookingStatus } from "@prisma/client";
 import { CancelBookingButton } from "@/components/CancelBookingButton";
+import { ChangePasswordForm } from "@/components/ChangePasswordForm";
 import { logoutAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
 import { formatHourLabel, formatMoney, spacePath } from "@/lib/constants";
@@ -119,6 +120,8 @@ export default async function AccountPage() {
             ) : null}
           </div>
         )}
+
+        <ChangePasswordForm />
 
         <form action={logoutAction} className="logout-form">
           <button className="text-btn" type="submit">

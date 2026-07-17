@@ -2522,6 +2522,41 @@ button.btn-book {
   gap: 2rem;
 }
 
+.account-password {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 3rem;
+  padding: 1.5rem 1.35rem;
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+}
+
+.account-password h2 {
+  margin: 0.15rem 0 0.4rem;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 500;
+}
+
+.account-password > div > p:last-child {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.account-password-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.account-password-form .hint {
+  margin-top: -0.35rem;
+}
+
+.account-password-form .submit-btn {
+  justify-self: start;
+}
+
 .account-booking-group h2 {
   margin: 0 0 0.85rem;
   font-family: var(--font-display);
