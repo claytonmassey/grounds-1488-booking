@@ -211,6 +211,29 @@ export async function seasonalSetToBookable(
   };
 }
 
+/**
+ * Hours reserved for published seasonal sets on a date (same physical room).
+ * Used to keep Glass House unavailable during seasonal windows, even with no bookings.
+ */
+async function seasonalReservedHours(bookingDate: string) {
+  const sets = await prisma.seasonalSet.findMany({
+    where: {
+      published: true,
+      availableFrom: { lte: bookingDate },
+      availableTo: { gte: bookingDate },
+    },
+    select: { openHour: true, closeHour: true },
+  });
+
+  const hours = new Set<number>();
+  for (const set of sets) {
+    for (let hour = set.openHour; hour < set.closeHour; hour += 1) {
+      hours.add(hour);
+    }
+  }
+  return hours;
+}
+
 export async function getHourlyAvailability(
   unit: BookableUnit,
   bookingDate: string,
@@ -218,18 +241,23 @@ export async function getHourlyAvailability(
   await expireStalePendingBookings(unit, bookingDate);
 
   const roomFilter = await sharedRoomBookingFilter(unit);
-  const activeBookings = await prisma.booking.findMany({
-    where: {
-      ...roomFilter,
-      bookingDate,
-      status: { in: [BookingStatus.PENDING, BookingStatus.CONFIRMED] },
-    },
-    select: {
-      startHour: true,
-      endHour: true,
-      partySize: true,
-    },
-  });
+  const [activeBookings, reservedBySeasonal] = await Promise.all([
+    prisma.booking.findMany({
+      where: {
+        ...roomFilter,
+        bookingDate,
+        status: { in: [BookingStatus.PENDING, BookingStatus.CONFIRMED] },
+      },
+      select: {
+        startHour: true,
+        endHour: true,
+        partySize: true,
+      },
+    }),
+    unit.spaceSlug === SpaceSlug.GLASS_HOUSE
+      ? seasonalReservedHours(bookingDate)
+      : Promise.resolve(null),
+  ]);
 
   const today = format(new Date(), "yyyy-MM-dd");
   const currentHour = new Date().getHours();
@@ -237,11 +265,14 @@ export async function getHourlyAvailability(
   const slots: HourSlot[] = [];
 
   for (let hour = unit.openHour; hour < unit.closeHour; hour += 1) {
-    const used = activeBookings
-      .filter((booking) =>
-        rangesOverlap(hour, hour + 1, booking.startHour, booking.endHour),
-      )
-      .reduce((sum, booking) => sum + booking.partySize, 0);
+    const blockedBySeasonal = reservedBySeasonal?.has(hour) ?? false;
+    const used = blockedBySeasonal
+      ? unit.maxCapacity
+      : activeBookings
+          .filter((booking) =>
+            rangesOverlap(hour, hour + 1, booking.startHour, booking.endHour),
+          )
+          .reduce((sum, booking) => sum + booking.partySize, 0);
 
     const remainingCapacity = Math.max(unit.maxCapacity - used, 0);
     const isPast =
