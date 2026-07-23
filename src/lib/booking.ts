@@ -85,19 +85,47 @@ export type BookableUnit = {
  */
 const PENDING_HOLD_MINUTES = 30;
 
-async function expireStalePendingBookings(filter: {
-  spaceId?: string;
-  seasonalSetId?: string;
-  bookingDate: string;
-}) {
+/** Glass House and Seasonal Sets share the same physical room. */
+function sharesGlassHouseRoom(slug: SpaceSlug) {
+  return slug === SpaceSlug.GLASS_HOUSE || slug === SpaceSlug.SEASONAL_SETS;
+}
+
+/**
+ * Bookings that occupy the same physical room as this unit.
+ * Glass House ↔ all seasonal sets are mutually exclusive.
+ */
+async function sharedRoomBookingFilter(unit: BookableUnit) {
+  if (!sharesGlassHouseRoom(unit.spaceSlug)) {
+    return {
+      spaceId: unit.spaceId,
+      seasonalSetId: null as string | null,
+    };
+  }
+
+  const [glassHouse, seasonalParent] = await Promise.all([
+    getSpaceBySlug(SpaceSlug.GLASS_HOUSE),
+    getSpaceBySlug(SpaceSlug.SEASONAL_SETS),
+  ]);
+
+  return {
+    OR: [
+      { spaceId: glassHouse.id, seasonalSetId: null },
+      { spaceId: seasonalParent.id, seasonalSetId: { not: null } },
+    ],
+  };
+}
+
+async function expireStalePendingBookings(
+  unit: BookableUnit,
+  bookingDate: string,
+) {
   const cutoff = new Date(Date.now() - PENDING_HOLD_MINUTES * 60 * 1000);
+  const roomFilter = await sharedRoomBookingFilter(unit);
 
   await prisma.booking.updateMany({
     where: {
-      ...(filter.seasonalSetId
-        ? { seasonalSetId: filter.seasonalSetId }
-        : { spaceId: filter.spaceId, seasonalSetId: null }),
-      bookingDate: filter.bookingDate,
+      ...roomFilter,
+      bookingDate,
       status: BookingStatus.PENDING,
       createdAt: { lt: cutoff },
     },
@@ -187,17 +215,12 @@ export async function getHourlyAvailability(
   unit: BookableUnit,
   bookingDate: string,
 ): Promise<HourSlot[]> {
-  await expireStalePendingBookings({
-    spaceId: unit.spaceId,
-    seasonalSetId: unit.seasonalSetId,
-    bookingDate,
-  });
+  await expireStalePendingBookings(unit, bookingDate);
 
+  const roomFilter = await sharedRoomBookingFilter(unit);
   const activeBookings = await prisma.booking.findMany({
     where: {
-      ...(unit.seasonalSetId
-        ? { seasonalSetId: unit.seasonalSetId }
-        : { spaceId: unit.spaceId, seasonalSetId: null }),
+      ...roomFilter,
       bookingDate,
       status: { in: [BookingStatus.PENDING, BookingStatus.CONFIRMED] },
     },
