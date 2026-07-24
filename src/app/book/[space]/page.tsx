@@ -44,6 +44,11 @@ export default async function BookSpacePage({ params }: PageProps) {
         <p className="section-kicker">Book · {space.rateLabel}</p>
         <h1 className="page-title">{space.name}</h1>
         <p className="page-lede">{space.description}</p>
+        {space.availableFrom && space.availableFrom > new Date().toISOString().slice(0, 10) ? (
+          <p className="notice notice-warn">
+            Bookings open {space.availableFrom}. The calendar starts on that date.
+          </p>
+        ) : null}
 
         <BookingForm
           mode="space"

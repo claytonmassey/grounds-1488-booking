@@ -34,6 +34,8 @@ export type SpaceContentView = {
   maxCapacity: number;
   openHour: number;
   closeHour: number;
+  availableFrom?: string;
+  availableTo?: string;
   rateLabel: string;
   pageIntro: string;
   pageBody: string;
@@ -214,6 +216,8 @@ function mapSpace(space: Space): SpaceContentView {
     maxCapacity: space.maxCapacity,
     openHour: space.openHour,
     closeHour: space.closeHour,
+    availableFrom: space.availableFrom ?? undefined,
+    availableTo: space.availableTo ?? undefined,
     rateLabel: `${formatMoney(space.hourlyRate)} / hour`,
     pageIntro: space.pageIntro || fallback.pageIntro,
     pageBody: space.pageBody || fallback.pageBody,

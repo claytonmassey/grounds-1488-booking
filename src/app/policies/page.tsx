@@ -24,22 +24,73 @@ export default async function PoliciesPage() {
         <p className="section-kicker">Legal</p>
         <h1 className="page-title">Policies &amp; Terms</h1>
         <p className="page-lede">
-          Please read these policies before booking The Grounds, Glass House, or
-          a Seasonal Set.
+          Please read these policies before booking The Grounds, Edelweiss Glass
+          House, or a Seasonal Set.
         </p>
 
+        <nav className="policies-toc" aria-label="On this page">
+          <a href="#terms">Terms &amp; Conditions</a>
+          <a href="#privacy">Privacy</a>
+          <a href="#booking">Cancellation refunds</a>
+          <a href="#sms">SMS</a>
+        </nav>
+
         <section className="policies-section" id="terms">
-          <h2>Terms of Service</h2>
+          <h2>The Grounds Collective — Terms &amp; Conditions</h2>
+
+          <h3>1. Booking &amp; Payment</h3>
           <p>
-            By booking with Grounds Collective you agree to rent the reserved
-            space or set for the selected date and hours only. The booking fee
-            covers use of the space itself — no photographer, hair, makeup, or
-            production crew is included unless separately arranged.
+            All bookings require full payment to secure your date. Bookings are
+            non‑transferable without written approval.
           </p>
+
+          <h3>2. Cancellation &amp; Rescheduling</h3>
           <p>
-            You are responsible for your guests, equipment, and leaving the
-            space in the condition you found it. Damage beyond normal wear may
-            be billed separately.
+            Cancellations made within 48 hours of your booking are
+            non‑refundable. One reschedule is allowed with at least 48 hours’
+            notice. Weather reschedules apply only to outdoor locations; The
+            Edelweiss Glass House operates rain or shine.
+          </p>
+
+          <h3>3. Rental Time</h3>
+          <p>
+            Your rental period includes setup and teardown. Early entry is not
+            permitted. Exiting late may result in additional fees. Please plan
+            accordingly.
+          </p>
+
+          <h3>4. Property Rules</h3>
+          <p>
+            No leaning, climbing, or placing items against the glass walls. No
+            smoke bombs, glitter, confetti, open flames, or aerosols. Furniture
+            must remain inside the Glass House unless approved. Outdoor areas
+            must be treated respectfully.
+          </p>
+
+          <h3>5. Cleanliness &amp; Damages</h3>
+          <p>
+            The space must be left in the same condition it was found. Any
+            damage to the glass, furniture, or property will be billed to the
+            renter. Trash must be placed in designated bins.
+          </p>
+
+          <h3>6. Guests &amp; Capacity</h3>
+          <p>
+            Guest limits must be followed. Children must be supervised at all
+            times. Pets require prior approval.
+          </p>
+
+          <h3>7. Usage</h3>
+          <p>
+            Commercial photography is permitted. Workshops, large events, or
+            sub‑rentals require written permission.
+          </p>
+
+          <h3>8. Liability</h3>
+          <p>
+            The Grounds Collective is not responsible for injuries, lost items,
+            or equipment damage. Renters assume full responsibility for
+            themselves, their clients, and their guests.
           </p>
         </section>
 
@@ -58,11 +109,12 @@ export default async function PoliciesPage() {
         </section>
 
         <section className="policies-section" id="booking">
-          <h2>Booking &amp; cancellation</h2>
+          <h2>Cancellation refund schedule</h2>
           <p>
-            You can cancel from your account (or an admin can cancel on your
-            behalf). Refunds follow the notice windows below and are returned to
-            the original payment method via Stripe when eligible.
+            In addition to the Terms above, automated refunds for The Grounds
+            and Glass House follow the notice windows below and are returned to
+            the original payment method via Stripe when eligible. You can cancel
+            from your account (or an admin can cancel on your behalf).
           </p>
           <p>
             <strong>The Grounds &amp; Glass House</strong>
@@ -80,10 +132,6 @@ export default async function PoliciesPage() {
               <li key={line}>{line}</li>
             ))}
           </ul>
-          <p>
-            Pets are welcome. There is a $25 pet fee; a link to pay will be
-            included in your confirmation email when applicable.
-          </p>
         </section>
 
         <section className="policies-section" id="sms">

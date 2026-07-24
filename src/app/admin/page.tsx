@@ -64,6 +64,8 @@ export default async function AdminContentPage() {
       maxCapacity: space.maxCapacity,
       openHour: space.openHour,
       closeHour: space.closeHour,
+      availableFrom: space.availableFrom ?? "",
+      availableTo: space.availableTo ?? "",
     };
   });
 

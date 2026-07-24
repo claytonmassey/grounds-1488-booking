@@ -40,7 +40,10 @@ export default async function RootLayout({
         <main className="flex-1">{children}</main>
         <footer className="site-footer">
           <span>{settings.footerText}</span>
-          <a href="/policies">Policies</a>
+          <div className="site-footer-links">
+            <a href="/policies#terms">Terms &amp; Conditions</a>
+            <a href="/policies">All policies</a>
+          </div>
         </footer>
       </body>
     </html>

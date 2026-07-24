@@ -124,6 +124,12 @@ export default async function SpacePage({ params }: PageProps) {
                   {formatHourLabel(space.closeHour)}
                 </dd>
               </div>
+              {space.availableFrom ? (
+                <div>
+                  <dt>Bookable from</dt>
+                  <dd>{space.availableFrom}</dd>
+                </div>
+              ) : null}
             </dl>
           </header>
 

@@ -119,6 +119,12 @@ export function SiteHeader() {
                 {link.label}
               </Link>
             ))}
+            <Link
+              href="/policies"
+              className={pathname === "/policies" ? "is-active" : undefined}
+            >
+              Policies
+            </Link>
           </div>
           <div className="site-nav-actions">
             {user ? (
@@ -216,6 +222,14 @@ export function SiteHeader() {
 
           <Link href="/" className="site-menu-book">
             Book a space
+          </Link>
+
+          <p className="site-menu-label">Info</p>
+          <Link
+            href="/policies"
+            className={pathname === "/policies" ? "is-active" : undefined}
+          >
+            Policies &amp; terms
           </Link>
         </nav>
       </div>

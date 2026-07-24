@@ -137,6 +137,8 @@ async function main() {
       maxCapacity: 1,
       openHour: 8,
       closeHour: 20,
+      availableFrom: "2026-08-08",
+      availableTo: null,
     },
     create: {
       slug: SpaceSlug.GLASS_HOUSE,
@@ -163,6 +165,8 @@ async function main() {
       maxCapacity: 1,
       openHour: 8,
       closeHour: 20,
+      availableFrom: "2026-08-08",
+      availableTo: null,
     },
   });
 

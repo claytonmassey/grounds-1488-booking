@@ -367,6 +367,11 @@ export function BookingFlow({
                 Only bookable {resource.availableFrom} – {resource.availableTo}.
                 Other days stay blocked.
               </p>
+            ) : resource.availableFrom ? (
+              <p className="hint" style={{ marginBottom: "0.65rem" }}>
+                Bookings open {resource.availableFrom}. Earlier dates are not
+                available.
+              </p>
             ) : null}
             <DateCalendar
               selected={bookingDate}
@@ -526,12 +531,17 @@ export function BookingFlow({
           </div>
         </div>
         <div className="book-section-body terms-block">
+          <a
+            href="/policies#terms"
+            target="_blank"
+            rel="noreferrer"
+            className="terms-policy-link"
+          >
+            Read full Terms &amp; Conditions
+          </a>
           <p>
-            Please make sure to read through our{" "}
-            <a href="/policies" target="_blank" rel="noreferrer">
-              policies / terms and conditions
-            </a>
-            .
+            By continuing you agree to The Grounds Collective booking rules,
+            property rules, cancellation policy, and liability terms.
           </p>
           <label className="terms-check">
             <input
@@ -542,7 +552,7 @@ export function BookingFlow({
             <span>
               I have read and agree to the{" "}
               <a href="/policies#terms" target="_blank" rel="noreferrer">
-                Terms of Service
+                Terms &amp; Conditions
               </a>{" "}
               and{" "}
               <a href="/policies#privacy" target="_blank" rel="noreferrer">
@@ -553,7 +563,7 @@ export function BookingFlow({
           </label>
           {termsTouched && !acceptedTerms ? (
             <p className="terms-error">
-              I have read and agree to the terms above is required.
+              Agreeing to the Terms &amp; Conditions is required.
             </p>
           ) : null}
           <label className="terms-check">
@@ -565,7 +575,7 @@ export function BookingFlow({
             <span>
               By checking, you accept our{" "}
               <a href="/policies#terms" target="_blank" rel="noreferrer">
-                Terms of Service
+                Terms &amp; Conditions
               </a>
               , acknowledge that you have read and understood our{" "}
               <a href="/policies#privacy" target="_blank" rel="noreferrer">

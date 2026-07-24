@@ -46,6 +46,18 @@ const spaceSchema = z.object({
   maxCapacity: z.number().int().min(1).max(50),
   openHour: z.number().int().min(0).max(23),
   closeHour: z.number().int().min(1).max(24),
+  availableFrom: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+    .or(z.literal(""))
+    .optional(),
+  availableTo: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+    .or(z.literal(""))
+    .optional(),
 });
 
 export async function GET() {
@@ -100,6 +112,8 @@ export async function PATCH(request: NextRequest) {
           maxCapacity: data.maxCapacity,
           openHour: data.openHour,
           closeHour: data.closeHour,
+          availableFrom: data.availableFrom?.trim() || null,
+          availableTo: data.availableTo?.trim() || null,
         },
       });
       return NextResponse.json({ space });

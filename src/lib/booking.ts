@@ -184,6 +184,8 @@ export function spaceToBookable(space: Space): BookableUnit {
     openHour: space.openHour,
     closeHour: space.closeHour,
     purposes: parsePurposes(space.purposes, SPACE_COPY[space.slug].purposes),
+    availableFrom: space.availableFrom ?? undefined,
+    availableTo: space.availableTo ?? undefined,
     kind: "space",
     spaceId: space.id,
     spaceSlug: space.slug,

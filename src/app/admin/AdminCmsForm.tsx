@@ -35,6 +35,10 @@ type SpaceState = {
   maxCapacity: number;
   openHour: number;
   closeHour: number;
+  /** YYYY-MM-DD or empty */
+  availableFrom: string;
+  /** YYYY-MM-DD or empty */
+  availableTo: string;
 };
 
 type Props = {
@@ -366,6 +370,35 @@ export function AdminCmsForm({ initialSettings, initialSpaces }: Props) {
                   })
                 }
               />
+            </label>
+            <label className="field">
+              <span>Bookable from (YYYY-MM-DD)</span>
+              <input
+                type="date"
+                value={space.availableFrom}
+                onChange={(e) =>
+                  updateSpace(space.slug, {
+                    availableFrom: e.target.value,
+                  })
+                }
+              />
+              <span className="hint">
+                Leave blank for immediate booking. Use this to hold a space
+                closed until glass install / opening day.
+              </span>
+            </label>
+            <label className="field">
+              <span>Bookable through (YYYY-MM-DD)</span>
+              <input
+                type="date"
+                value={space.availableTo}
+                onChange={(e) =>
+                  updateSpace(space.slug, {
+                    availableTo: e.target.value,
+                  })
+                }
+              />
+              <span className="hint">Optional end date. Leave blank for open-ended.</span>
             </label>
           </div>
 

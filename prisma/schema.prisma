@@ -63,6 +63,10 @@ model Space {
   maxCapacity  Int
   openHour     Int        @default(8)
   closeHour    Int        @default(20)
+  /// Optional inclusive first bookable date (YYYY-MM-DD). Null = available from today.
+  availableFrom String?
+  /// Optional inclusive last bookable date (YYYY-MM-DD). Null = open-ended.
+  availableTo   String?
   /// Long-form intro on the dedicated space page
   pageIntro    String     @default("")
   /// Additional body copy for the space page
