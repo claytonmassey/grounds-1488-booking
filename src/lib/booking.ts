@@ -310,7 +310,7 @@ export async function assertBookingAvailable(input: {
 
   if (partySize > unit.maxCapacity) {
     throw new Error(
-      `${unit.name} allows a maximum party of ${unit.maxCapacity}.`,
+      `${unit.name} allows a maximum of ${unit.maxCapacity} photographers at once.`,
     );
   }
 
@@ -349,7 +349,7 @@ export async function assertBookingAvailable(input: {
     const slot = slots.find((item) => item.hour === hour);
     if (!slot || !slot.available || slot.remainingCapacity < partySize) {
       throw new Error(
-        `${formatHourLabel(hour)} is not available for a party of ${partySize}.`,
+        `${formatHourLabel(hour)} is not available for ${partySize} photographer${partySize === 1 ? "" : "s"}.`,
       );
     }
   }

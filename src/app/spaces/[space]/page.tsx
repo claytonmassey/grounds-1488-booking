@@ -110,11 +110,11 @@ export default async function SpacePage({ params }: PageProps) {
                 <dd>{purposeLabel}</dd>
               </div>
               <div>
-                <dt>Capacity</dt>
+                <dt>Photographers</dt>
                 <dd>
                   {space.maxCapacity === 1
-                    ? "Private"
-                    : `Shared · max ${space.maxCapacity}`}
+                    ? "Private · 1 at a time"
+                    : `Up to ${space.maxCapacity} at once`}
                 </dd>
               </div>
               <div>

@@ -145,7 +145,8 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
                       <td>
                         {booking.hours}h ·{" "}
                         {booking.purpose === "EVENT" ? "event" : "photo"} ·
-                        party {booking.partySize}
+                        {booking.partySize} photographer
+                        {booking.partySize === 1 ? "" : "s"}
                       </td>
                       <td>
                         {formatMoney(booking.totalAmountCents)}

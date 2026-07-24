@@ -158,7 +158,7 @@ export function BookingFlow({
       .map((slot) => slot.hour);
 
     if (available.length === 0) {
-      setError("No full-day availability for this party size.");
+      setError("No full-day availability for that many photographers.");
       return;
     }
 
@@ -241,7 +241,7 @@ export function BookingFlow({
     (isSeasonal
       ? "Each set is exclusive — one booking at a time."
       : resource.maxCapacity > 1
-        ? `Overlapping bookings are OK until the shared party total hits ${resource.maxCapacity}.`
+        ? `Overlapping bookings are OK until ${resource.maxCapacity} photographers are booked at once. Guests and clients don’t count toward this limit.`
         : "Exclusive booking — one reservation at a time.");
 
   return (
@@ -261,7 +261,7 @@ export function BookingFlow({
             <p>
               {isSeasonal
                 ? "Confirm the purpose of your shoot."
-                : "What are you booking, and for how many people?"}
+                : "What are you booking, and for how many photographers?"}
             </p>
           </div>
         </div>
@@ -306,7 +306,9 @@ export function BookingFlow({
 
           {!isSeasonal ? (
           <div className="field-block">
-            <p className="field-label">Party size (max {resource.maxCapacity})</p>
+            <p className="field-label">
+              Photographers (max {resource.maxCapacity})
+            </p>
             <div className="choice-row choice-row--segmented">
               {Array.from(
                 { length: resource.maxCapacity },

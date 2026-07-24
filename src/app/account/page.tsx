@@ -170,7 +170,8 @@ function BookingCard({
           {booking.hours === 1 ? "" : "s"}
         </p>
         <p className="hint">
-          {booking.purpose.toLowerCase()} · party of {booking.partySize}
+          {booking.purpose.toLowerCase()} · {booking.partySize} photographer
+          {booking.partySize === 1 ? "" : "s"}
           {booking.status === BookingStatus.CANCELLED &&
           booking.refundAmountCents != null
             ? ` · refunded ${formatMoney(booking.refundAmountCents)}`

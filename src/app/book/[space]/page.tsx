@@ -51,7 +51,7 @@ export default async function BookSpacePage({ params }: PageProps) {
           space={space}
           capacityHint={
             slug === "GROUNDS"
-              ? `Grounds can overlap until the shared party total hits ${space.maxCapacity}.`
+              ? `Up to ${space.maxCapacity} photographers can book overlapping times. Guests and clients don’t count toward this limit.`
               : "Glass House is exclusive — one booking at a time."
           }
           initialCustomer={

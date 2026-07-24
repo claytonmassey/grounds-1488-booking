@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
             unit_amount: totalAmountCents,
             product_data: {
               name: `${unit.name} — ${hours} hour${hours === 1 ? "" : "s"}`,
-              description: `${body.purpose.toLowerCase()} booking on ${body.bookingDate} (${body.startHour}:00–${body.endHour}:00), party of ${body.partySize}`,
+              description: `${body.purpose.toLowerCase()} booking on ${body.bookingDate} (${body.startHour}:00–${body.endHour}:00), ${body.partySize} photographer${body.partySize === 1 ? "" : "s"}`,
             },
           },
         },

@@ -327,7 +327,7 @@ export function AdminCmsForm({ initialSettings, initialSpaces }: Props) {
               </div>
             </div>
             <label className="field">
-              <span>Max capacity</span>
+              <span>Max photographers at once</span>
               <input
                 type="number"
                 min={1}

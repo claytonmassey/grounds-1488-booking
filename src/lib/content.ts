@@ -70,14 +70,14 @@ const DEFAULT_SPACE_MARKETING: Record<
     bullets: [
       "Photography & events",
       "$60 / hour",
-      "Shared capacity of 2",
+      "Up to 2 photographers at once",
       "Book 1 hour, a few hours, or the day",
     ],
     purposes: [BookingPurpose.PHOTOGRAPHY, BookingPurpose.EVENT],
     pageIntro:
       "Wide lawns, soft tree line, and open sky — The Grounds is built for portraits, fashion tests, and small outdoor gatherings.",
     pageBody:
-      "Book by the hour for photography sessions or events. Overlapping bookings are welcome until the shared party total reaches two guests.",
+      "Book by the hour for photography sessions or events. Up to two photographers can book overlapping times — guests and clients don’t count toward that limit.",
     gallery: [
       {
         url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80",

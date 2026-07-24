@@ -61,7 +61,7 @@ async function main() {
     update: {
       name: "The Grounds",
       description:
-        "Open-air grounds for photography and gatherings. Up to 2 guests may share overlapping hours.",
+        "Open-air grounds for photography and gatherings. Up to 2 photographers may book overlapping hours.",
       kicker: "Outdoors",
       tagline: "Photography & events among the open grounds",
       cardBlurb:
@@ -69,14 +69,14 @@ async function main() {
       bullets: [
         "Photography & events",
         "$60 / hour",
-        "Shared capacity of 2",
+        "Up to 2 photographers at once",
         "Book 1 hour, a few hours, or the day",
       ],
       purposes: [BookingPurpose.PHOTOGRAPHY, BookingPurpose.EVENT],
       pageIntro:
         "Wide lawns, soft tree line, and open sky — The Grounds is built for portraits, fashion tests, and small outdoor gatherings.",
       pageBody:
-        "Book by the hour for photography sessions or events. Overlapping bookings are welcome until the shared party total reaches two guests.",
+        "Book by the hour for photography sessions or events. Up to two photographers can book overlapping times — guests and clients don’t count toward that limit.",
       gallery: groundsGallery,
       hourlyRate: 6000,
       maxCapacity: 2,
@@ -87,7 +87,7 @@ async function main() {
       slug: SpaceSlug.GROUNDS,
       name: "The Grounds",
       description:
-        "Open-air grounds for photography and gatherings. Up to 2 guests may share overlapping hours.",
+        "Open-air grounds for photography and gatherings. Up to 2 photographers may book overlapping hours.",
       kicker: "Outdoors",
       tagline: "Photography & events among the open grounds",
       cardBlurb:
@@ -95,14 +95,14 @@ async function main() {
       bullets: [
         "Photography & events",
         "$60 / hour",
-        "Shared capacity of 2",
+        "Up to 2 photographers at once",
         "Book 1 hour, a few hours, or the day",
       ],
       purposes: [BookingPurpose.PHOTOGRAPHY, BookingPurpose.EVENT],
       pageIntro:
         "Wide lawns, soft tree line, and open sky — The Grounds is built for portraits, fashion tests, and small outdoor gatherings.",
       pageBody:
-        "Book by the hour for photography sessions or events. Overlapping bookings are welcome until the shared party total reaches two guests.",
+        "Book by the hour for photography sessions or events. Up to two photographers can book overlapping times — guests and clients don’t count toward that limit.",
       gallery: groundsGallery,
       hourlyRate: 6000,
       maxCapacity: 2,

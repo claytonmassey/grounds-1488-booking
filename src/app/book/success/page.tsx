@@ -224,8 +224,9 @@ function SuccessContent() {
         <div>
           <dt>Purpose</dt>
           <dd>
-            {booking.purpose === "EVENT" ? "Event" : "Photography"} · party of{" "}
-            {booking.partySize}
+            {booking.purpose === "EVENT" ? "Event" : "Photography"} ·{" "}
+            {booking.partySize} photographer
+            {booking.partySize === 1 ? "" : "s"}
           </dd>
         </div>
         <div>
