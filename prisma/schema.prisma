@@ -78,6 +78,21 @@ model Space {
   updatedAt    DateTime   @updatedAt
 }
 
+/// Admin blackout dates. Blocks all hours on the covered days.
+model BlockedDate {
+  id        String     @id @default(cuid())
+  /// Null blocks every space and seasonal set.
+  spaceSlug SpaceSlug?
+  /// Inclusive YYYY-MM-DD range
+  startDate String
+  endDate   String
+  reason    String     @default("")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([startDate, endDate])
+}
+
 /// Individual themed rooms/sets under Seasonal Sets (admin-managed).
 model SeasonalSet {
   id            String    @id @default(cuid())

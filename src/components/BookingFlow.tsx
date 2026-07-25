@@ -70,6 +70,7 @@ export function BookingFlow({
     clampInitialDate(resource),
   );
   const [slots, setSlots] = useState<HourSlot[] | null>(null);
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
   const [partySize, setPartySize] = useState(1);
   const [customerName, setCustomerName] = useState(initialCustomer?.name ?? "");
@@ -84,6 +85,28 @@ export function BookingFlow({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const isSeasonal = Boolean(seasonalSetSlug);
+
+  useEffect(() => {
+    let cancelled = false;
+    const query = seasonalSetSlug
+      ? `set=${encodeURIComponent(seasonalSetSlug)}`
+      : `space=${spaceSlug}`;
+
+    fetch(`/api/availability/blocked?${query}&days=400`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!cancelled && Array.isArray(data.blockedDates)) {
+          setBlockedDates(data.blockedDates);
+        }
+      })
+      .catch(() => {
+        // Server-side checks still reject blocked days if this fetch fails.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [spaceSlug, seasonalSetSlug]);
 
   useEffect(() => {
     if (!bookingDate) return;
@@ -379,6 +402,7 @@ export function BookingFlow({
               minDate={resource.availableFrom}
               maxDate={resource.availableTo}
               maxDaysAhead={400}
+              blockedDates={blockedDates}
             />
           </div>
 
@@ -386,7 +410,13 @@ export function BookingFlow({
             <p className="field-label">
               Hours ({resource.openHour}:00–{resource.closeHour}:00)
             </p>
-            <p className="hint">{hint}</p>
+            {blockedDates.includes(bookingDate) ? (
+              <p className="notice notice-warn">
+                This day is closed. Please choose another date.
+              </p>
+            ) : (
+              <p className="hint">{hint}</p>
+            )}
 
             {loadingSlots ? (
               <SlotGridSkeleton

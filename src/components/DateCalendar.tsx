@@ -16,7 +16,7 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type Props = {
   selected: string;
@@ -26,6 +26,8 @@ type Props = {
   minDate?: string;
   /** YYYY-MM-DD inclusive upper bound (optional). */
   maxDate?: string;
+  /** YYYY-MM-DD days closed by an admin block. */
+  blockedDates?: string[];
 };
 
 function parseBound(value: string | undefined) {
@@ -39,7 +41,9 @@ export function DateCalendar({
   maxDaysAhead = 60,
   minDate: minDateProp,
   maxDate: maxDateProp,
+  blockedDates,
 }: Props) {
+  const blocked = useMemo(() => new Set(blockedDates ?? []), [blockedDates]);
   const today = startOfDay(new Date());
   const windowMax = addDays(today, maxDaysAhead - 1);
   const boundMin = parseBound(minDateProp);
@@ -110,8 +114,10 @@ export function DateCalendar({
         {days.map((day) => {
           const value = format(day, "yyyy-MM-dd");
           const inMonth = isSameMonth(day, visibleMonth);
+          const isBlocked = blocked.has(value);
           const disabled =
             !inMonth ||
+            isBlocked ||
             isBefore(day, minSelectable) ||
             isBefore(maxSelectable, day);
           const isSelected = selectedDate
@@ -126,11 +132,13 @@ export function DateCalendar({
               role="gridcell"
               disabled={disabled}
               aria-selected={isSelected}
+              title={isBlocked && inMonth ? "Unavailable" : undefined}
               className={[
                 "cal-day",
                 isSelected ? "selected" : "",
                 isToday ? "today" : "",
                 !inMonth ? "outside" : "",
+                isBlocked && inMonth ? "blocked" : "",
               ]
                 .filter(Boolean)
                 .join(" ")}

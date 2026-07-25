@@ -1792,6 +1792,104 @@ button.btn-book {
   cursor: not-allowed;
 }
 
+.cal-day.blocked {
+  position: relative;
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.cal-day.blocked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0.22rem;
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 50%;
+  background: #b3261e;
+  transform: translateX(-50%);
+}
+
+.admin-blocked {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.75rem;
+  align-items: start;
+}
+
+@media (min-width: 980px) {
+  .admin-blocked {
+    grid-template-columns: minmax(19rem, 0.9fr) minmax(0, 1.1fr);
+    gap: 1.75rem;
+  }
+}
+
+.admin-blocked-form,
+.admin-blocked-list {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 1.25rem clamp(1.1rem, 2vw, 1.5rem) 1.5rem;
+}
+
+.admin-blocked-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-blocked-form h2,
+.admin-blocked-list h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.admin-blocked-dates {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 520px) {
+  .admin-blocked-dates {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.admin-blocked-cards {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-blocked-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.admin-blocked-card.is-past {
+  opacity: 0.6;
+}
+
+.admin-blocked-range {
+  margin: 0 0 0.15rem;
+  font-weight: 500;
+}
+
+.admin-blocked-subhead {
+  margin: 1.6rem 0 0;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
 .field-block,
 .field {
   display: grid;

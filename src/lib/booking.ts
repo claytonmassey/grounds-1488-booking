@@ -7,6 +7,7 @@ import {
 } from "@prisma/client";
 import { addDays, format, parseISO } from "date-fns";
 import { z } from "zod";
+import { findBlockForDate } from "./blocked-dates";
 import { formatHourLabel, SPACE_COPY } from "./constants";
 import { prisma } from "./prisma";
 
@@ -242,6 +243,20 @@ export async function getHourlyAvailability(
 ): Promise<HourSlot[]> {
   await expireStalePendingBookings(unit, bookingDate);
 
+  const blocked = await findBlockForDate(unit.spaceSlug, bookingDate);
+  if (blocked) {
+    const slots: HourSlot[] = [];
+    for (let hour = unit.openHour; hour < unit.closeHour; hour += 1) {
+      slots.push({
+        hour,
+        label: `${formatHourLabel(hour)} – ${formatHourLabel(hour + 1)}`,
+        remainingCapacity: 0,
+        available: false,
+      });
+    }
+    return slots;
+  }
+
   const roomFilter = await sharedRoomBookingFilter(unit);
   const [activeBookings, reservedBySeasonal] = await Promise.all([
     prisma.booking.findMany({
@@ -319,6 +334,15 @@ export async function assertBookingAvailable(input: {
   if (!unit.purposes.includes(purpose)) {
     throw new Error(
       `${unit.name} does not support ${purpose.toLowerCase()} bookings.`,
+    );
+  }
+
+  const blocked = await findBlockForDate(unit.spaceSlug, bookingDate);
+  if (blocked) {
+    throw new Error(
+      blocked.reason
+        ? `${bookingDate} is unavailable: ${blocked.reason}`
+        : `${bookingDate} is blocked and cannot be booked.`,
     );
   }
 
