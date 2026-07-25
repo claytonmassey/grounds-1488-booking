@@ -7,7 +7,7 @@ import {
 } from "@prisma/client";
 import { addDays, format, parseISO } from "date-fns";
 import { z } from "zod";
-import { findBlockForDate } from "./blocked-dates";
+import { blockedHoursForDate } from "./blocked-dates";
 import { formatHourLabel, SPACE_COPY } from "./constants";
 import { prisma } from "./prisma";
 
@@ -243,22 +243,8 @@ export async function getHourlyAvailability(
 ): Promise<HourSlot[]> {
   await expireStalePendingBookings(unit, bookingDate);
 
-  const blocked = await findBlockForDate(unit.spaceSlug, bookingDate);
-  if (blocked) {
-    const slots: HourSlot[] = [];
-    for (let hour = unit.openHour; hour < unit.closeHour; hour += 1) {
-      slots.push({
-        hour,
-        label: `${formatHourLabel(hour)} – ${formatHourLabel(hour + 1)}`,
-        remainingCapacity: 0,
-        available: false,
-      });
-    }
-    return slots;
-  }
-
   const roomFilter = await sharedRoomBookingFilter(unit);
-  const [activeBookings, reservedBySeasonal] = await Promise.all([
+  const [activeBookings, reservedBySeasonal, adminBlocks] = await Promise.all([
     prisma.booking.findMany({
       where: {
         ...roomFilter,
@@ -274,6 +260,7 @@ export async function getHourlyAvailability(
     unit.spaceSlug === SpaceSlug.GLASS_HOUSE
       ? seasonalReservedHours(bookingDate)
       : Promise.resolve(null),
+    blockedHoursForDate(unit.spaceSlug, bookingDate),
   ]);
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -282,14 +269,17 @@ export async function getHourlyAvailability(
   const slots: HourSlot[] = [];
 
   for (let hour = unit.openHour; hour < unit.closeHour; hour += 1) {
+    const blockedByAdmin =
+      adminBlocks.allDay || adminBlocks.hours.has(hour);
     const blockedBySeasonal = reservedBySeasonal?.has(hour) ?? false;
-    const used = blockedBySeasonal
-      ? unit.maxCapacity
-      : activeBookings
-          .filter((booking) =>
-            rangesOverlap(hour, hour + 1, booking.startHour, booking.endHour),
-          )
-          .reduce((sum, booking) => sum + booking.partySize, 0);
+    const used =
+      blockedByAdmin || blockedBySeasonal
+        ? unit.maxCapacity
+        : activeBookings
+            .filter((booking) =>
+              rangesOverlap(hour, hour + 1, booking.startHour, booking.endHour),
+            )
+            .reduce((sum, booking) => sum + booking.partySize, 0);
 
     const remainingCapacity = Math.max(unit.maxCapacity - used, 0);
     const isPast =
@@ -337,13 +327,22 @@ export async function assertBookingAvailable(input: {
     );
   }
 
-  const blocked = await findBlockForDate(unit.spaceSlug, bookingDate);
-  if (blocked) {
+  const adminBlocks = await blockedHoursForDate(unit.spaceSlug, bookingDate);
+  if (adminBlocks.allDay) {
     throw new Error(
-      blocked.reason
-        ? `${bookingDate} is unavailable: ${blocked.reason}`
+      adminBlocks.reason
+        ? `${bookingDate} is unavailable: ${adminBlocks.reason}`
         : `${bookingDate} is blocked and cannot be booked.`,
     );
+  }
+  for (let hour = startHour; hour < endHour; hour += 1) {
+    if (adminBlocks.hours.has(hour)) {
+      throw new Error(
+        adminBlocks.reason
+          ? `${formatHourLabel(hour)} is unavailable: ${adminBlocks.reason}`
+          : `${formatHourLabel(hour)} is blocked and cannot be booked.`,
+      );
+    }
   }
 
   if (unit.availableFrom && bookingDate < unit.availableFrom) {

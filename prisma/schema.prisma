@@ -78,7 +78,7 @@ model Space {
   updatedAt    DateTime   @updatedAt
 }
 
-/// Admin blackout dates. Blocks all hours on the covered days.
+/// Admin blackouts. Optional hours block part of each day; null hours = all day.
 model BlockedDate {
   id        String     @id @default(cuid())
   /// Null blocks every space and seasonal set.
@@ -86,6 +86,10 @@ model BlockedDate {
   /// Inclusive YYYY-MM-DD range
   startDate String
   endDate   String
+  /// Inclusive start hour (0–23). Null with endHour null = all day.
+  startHour Int?
+  /// Exclusive end hour (1–24). Null with startHour null = all day.
+  endHour   Int?
   reason    String     @default("")
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt

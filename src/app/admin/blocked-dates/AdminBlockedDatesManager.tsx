@@ -2,12 +2,15 @@
 
 import { FormEvent, useState, useTransition } from "react";
 import type { SpaceSlug } from "@prisma/client";
+import { formatHourLabel } from "@/lib/constants";
 
 export type BlockedDateItem = {
   id: string;
   spaceSlug: SpaceSlug | null;
   startDate: string;
   endDate: string;
+  startHour: number | null;
+  endHour: number | null;
   reason: string;
 };
 
@@ -19,6 +22,13 @@ const TARGET_LABELS: Record<Target, string> = {
   GLASS_HOUSE: "Glass House",
   SEASONAL_SETS: "Seasonal Sets",
 };
+
+const HOUR_OPTIONS = Array.from({ length: 25 }, (_, hour) => hour);
+
+function formatBlockHours(item: BlockedDateItem) {
+  if (item.startHour == null || item.endHour == null) return "All day";
+  return `${formatHourLabel(item.startHour)} – ${formatHourLabel(item.endHour)}`;
+}
 
 function formatRange(startDate: string, endDate: string) {
   const start = new Date(`${startDate}T12:00:00`);
@@ -47,6 +57,9 @@ export function AdminBlockedDatesManager({
   const [target, setTarget] = useState<Target>("ALL");
   const [startDate, setStartDate] = useState(todayValue);
   const [endDate, setEndDate] = useState(todayValue);
+  const [allDay, setAllDay] = useState(true);
+  const [startHour, setStartHour] = useState(8);
+  const [endHour, setEndHour] = useState(20);
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +78,10 @@ export function AdminBlockedDatesManager({
       setError("End date must be on or after the start date.");
       return;
     }
+    if (!allDay && endHour <= startHour) {
+      setError("End hour must be after start hour.");
+      return;
+    }
 
     startTransition(async () => {
       const response = await fetch("/api/admin/blocked-dates", {
@@ -74,6 +91,9 @@ export function AdminBlockedDatesManager({
           spaceSlug: target,
           startDate,
           endDate,
+          allDay,
+          startHour: allDay ? undefined : startHour,
+          endHour: allDay ? undefined : endHour,
           reason: reason.trim(),
         }),
       });
@@ -89,7 +109,11 @@ export function AdminBlockedDatesManager({
         ),
       );
       setReason("");
-      setMessage("Dates blocked. They are now unbookable.");
+      setMessage(
+        allDay
+          ? "Dates blocked all day. They are now unbookable."
+          : `Hours blocked (${formatHourLabel(startHour)} – ${formatHourLabel(endHour)}).`,
+      );
     });
   }
 
@@ -106,7 +130,7 @@ export function AdminBlockedDatesManager({
         return;
       }
       setItems((current) => current.filter((item) => item.id !== id));
-      setMessage("Block removed. Those days are bookable again.");
+      setMessage("Block removed. Those times are bookable again.");
     });
   }
 
@@ -117,11 +141,11 @@ export function AdminBlockedDatesManager({
   return (
     <div className="admin-blocked">
       <form className="admin-blocked-form" onSubmit={onSubmit}>
-        <h2>Block dates</h2>
+        <h2>Block dates &amp; times</h2>
         <p className="hint">
-          Blocked days show as unavailable on the calendar and cannot be
-          checked out. Glass House and Seasonal Sets share a room, so blocking
-          either one closes both.
+          Close whole days or only certain hours. Partial blocks leave the day
+          open for other times. Glass House and Seasonal Sets share a room, so
+          blocking either one closes both.
         </p>
 
         <label className="field">
@@ -161,6 +185,50 @@ export function AdminBlockedDatesManager({
           </label>
         </div>
 
+        <label className="terms-check">
+          <input
+            type="checkbox"
+            checked={allDay}
+            onChange={(e) => setAllDay(e.target.checked)}
+          />
+          <span>Block the whole day</span>
+        </label>
+
+        {!allDay ? (
+          <div className="admin-blocked-dates">
+            <label className="field">
+              <span>From</span>
+              <select
+                value={startHour}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  setStartHour(next);
+                  if (endHour <= next) setEndHour(Math.min(next + 1, 24));
+                }}
+              >
+                {HOUR_OPTIONS.filter((hour) => hour < 24).map((hour) => (
+                  <option key={hour} value={hour}>
+                    {formatHourLabel(hour)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Until</span>
+              <select
+                value={endHour}
+                onChange={(e) => setEndHour(Number(e.target.value))}
+              >
+                {HOUR_OPTIONS.filter((hour) => hour > startHour).map((hour) => (
+                  <option key={hour} value={hour}>
+                    {formatHourLabel(hour)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        ) : null}
+
         <label className="field">
           <span>Reason (optional)</span>
           <input
@@ -174,14 +242,14 @@ export function AdminBlockedDatesManager({
         {error ? <p className="notice notice-error">{error}</p> : null}
 
         <button type="submit" className="submit-btn" disabled={pending}>
-          {pending ? "Saving…" : "Block these dates"}
+          {pending ? "Saving…" : allDay ? "Block these dates" : "Block these hours"}
         </button>
       </form>
 
       <div className="admin-blocked-list">
-        <h2>Blocked days</h2>
+        <h2>Blocked times</h2>
         {upcoming.length === 0 ? (
-          <p className="hint">No upcoming blocked dates.</p>
+          <p className="hint">No upcoming blocks.</p>
         ) : (
           <ul className="admin-blocked-cards">
             {upcoming.map((item) => (
@@ -191,7 +259,8 @@ export function AdminBlockedDatesManager({
                     {formatRange(item.startDate, item.endDate)}
                   </p>
                   <p className="hint">
-                    {TARGET_LABELS[(item.spaceSlug ?? "ALL") as Target]}
+                    {TARGET_LABELS[(item.spaceSlug ?? "ALL") as Target]} ·{" "}
+                    {formatBlockHours(item)}
                     {item.reason ? ` · ${item.reason}` : ""}
                   </p>
                 </div>
@@ -219,7 +288,8 @@ export function AdminBlockedDatesManager({
                       {formatRange(item.startDate, item.endDate)}
                     </p>
                     <p className="hint">
-                      {TARGET_LABELS[(item.spaceSlug ?? "ALL") as Target]}
+                      {TARGET_LABELS[(item.spaceSlug ?? "ALL") as Target]} ·{" "}
+                      {formatBlockHours(item)}
                       {item.reason ? ` · ${item.reason}` : ""}
                     </p>
                   </div>

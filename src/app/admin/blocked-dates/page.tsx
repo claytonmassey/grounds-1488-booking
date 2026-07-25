@@ -20,8 +20,8 @@ export default async function AdminBlockedDatesPage() {
         <p className="section-kicker">Admin</p>
         <h1 className="page-title">Blocked dates</h1>
         <p className="page-lede">
-          Close specific days so no one can book them — maintenance, private
-          events, or time off.
+          Close specific days or hours so no one can book them — maintenance,
+          private events, or time off.
         </p>
         <AdminNav current="blocked" />
 
