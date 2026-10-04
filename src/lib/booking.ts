@@ -24,7 +24,14 @@ export const bookingRequestSchema = z
     partySize: z.number().int().min(1),
     customerName: z.string().trim().min(2).max(120),
     customerEmail: z.string().trim().email(),
-    customerPhone: z.string().trim().max(40).optional().or(z.literal("")),
+    customerPhone: z
+      .string()
+      .trim()
+      .min(7, "Enter a phone number.")
+      .max(40)
+      .refine((value) => value.replace(/\D/g, "").length >= 10, {
+        message: "Enter a phone number with at least 10 digits.",
+      }),
     acceptedTerms: z.literal(true, {
       message: "You must agree to the terms to continue.",
     }),

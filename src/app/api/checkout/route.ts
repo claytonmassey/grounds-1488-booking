@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         userId,
         customerName: body.customerName,
         customerEmail: body.customerEmail.toLowerCase(),
-        customerPhone: body.customerPhone || null,
+        customerPhone: body.customerPhone,
         purpose: body.purpose,
         partySize: body.partySize,
         bookingDate: body.bookingDate,

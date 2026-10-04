@@ -218,6 +218,10 @@ export function BookingFlow({
       setError("Please accept the Seasonal Sets policy to continue.");
       return;
     }
+    if (customerPhone.replace(/\D/g, "").length < 10) {
+      setError("Enter a phone number with at least 10 digits.");
+      return;
+    }
 
     setError(null);
     startTransition(async () => {
@@ -496,12 +500,14 @@ export function BookingFlow({
             />
           </label>
           <label className="field">
-            <span>Phone (optional)</span>
+            <span>Phone</span>
             <input
+              required
               type="tel"
               value={customerPhone}
               onChange={(event) => setCustomerPhone(event.target.value)}
               autoComplete="tel"
+              inputMode="tel"
             />
           </label>
         </div>

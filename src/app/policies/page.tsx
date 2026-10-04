@@ -97,7 +97,7 @@ export default async function PoliciesPage() {
         <section className="policies-section" id="privacy">
           <h2>Privacy Policy</h2>
           <p>
-            We collect your name, email, and optional phone number to confirm
+            We collect your name, email, and phone number to confirm
             bookings, process payment through Stripe, and send appointment
             updates. We do not sell your personal information.
           </p>
