@@ -25,10 +25,15 @@ export async function GET(request: NextRequest) {
       const stripe = getStripe();
       const session = await stripe.checkout.sessions.retrieve(sessionId);
       if (session.payment_status === "paid") {
+        const paidCents =
+          typeof session.amount_total === "number"
+            ? session.amount_total
+            : booking.totalAmountCents;
         await prisma.booking.update({
           where: { id: booking.id },
           data: {
             status: BookingStatus.CONFIRMED,
+            totalAmountCents: paidCents,
             stripePaymentIntentId:
               typeof session.payment_intent === "string"
                 ? session.payment_intent
@@ -36,6 +41,7 @@ export async function GET(request: NextRequest) {
           },
         });
         booking.status = BookingStatus.CONFIRMED;
+        booking.totalAmountCents = paidCents;
       }
     }
 

@@ -78,6 +78,9 @@ export async function POST(request: NextRequest) {
     const stripe = getStripe();
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
+      // Shows “Add promotion code” on the Stripe Checkout page.
+      // Create coupons and promotion codes in the Stripe Dashboard.
+      allow_promotion_codes: true,
       customer_email: body.customerEmail,
       line_items: [
         {

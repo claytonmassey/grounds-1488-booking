@@ -43,6 +43,10 @@ export async function POST(request: NextRequest) {
             typeof session.payment_intent === "string"
               ? session.payment_intent
               : session.payment_intent?.id ?? null,
+          // Store the amount actually charged after any promotion code.
+          ...(typeof session.amount_total === "number"
+            ? { totalAmountCents: session.amount_total }
+            : {}),
         },
       });
     }
